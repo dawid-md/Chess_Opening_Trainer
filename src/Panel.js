@@ -1,4 +1,4 @@
-export default function Panel(){
+export default function Panel({changeVariant}){
     return(
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
             <div className="container-fluid">
@@ -12,9 +12,9 @@ export default function Panel(){
                         Variant
                     </a>
                     <ul className="dropdown-menu">
-                        <li><a className="dropdown-item" href="#">Action</a></li>
-                        <li><a className="dropdown-item" href="#">Another action</a></li>
-                        <li><a className="dropdown-item" href="#">Something else here</a></li>
+                        <li><a className="dropdown-item" href="#" onClick={() => changeVariant("random")}>Random Move Engine</a></li>
+                        <li><a className="dropdown-item" href="#" onClick={() => changeVariant("multi")}>Multiplayer</a></li>
+                        <li><a className="dropdown-item" href="#" onClick={() => changeVariant("analysis")}>Analysis</a></li>
                     </ul>
                     </li>
                 </ul>

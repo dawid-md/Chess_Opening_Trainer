@@ -5,12 +5,15 @@ import Panel from "./Panel";
 import './App.css'
 
 export default function App() {
-
   const [variant, setVariant] = useState("multi")
+
+  const changeVariant = (newVariant) => {
+    setVariant(newVariant)
+  }
 
   return (
     <>
-    <Panel />
+    <Panel changeVariant={changeVariant}/>
     <div className="home bg-dark" style={{"height" : "100vh"}}>
       <div className="boardDiv" style={{"width" : "600px"}}>
         {variant === "random" ? <PlayRandomMoveEngine /> : null}
