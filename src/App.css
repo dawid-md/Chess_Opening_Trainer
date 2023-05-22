@@ -1,4 +1,9 @@
-.mainDiv{
-    /* width: 480px !important;
-    height: 800px !important; */
+.home{
+    display: flex;
+    justify-content: center;
+    /* align-items: center; */
+}
+
+.boardDiv{
+    /* margin: 10px; */
 }

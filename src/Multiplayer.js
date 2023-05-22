@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 
-export default function PlayRandomMoveEngine() {
+export default function Multiplayer() {
   const [game, setGame] = useState(new Chess());
 
   const makeMove = (move) => {
@@ -42,7 +42,7 @@ export default function PlayRandomMoveEngine() {
     const result = makeMove(move);
     if (result === null) return false;  // illegal move
 
-    if (result) setTimeout(makeRandomMove, 100); // If move was successful, schedule the random move.
+    //if (result) setTimeout(makeRandomMove, 100); // If move was successful, schedule the random move.
     return true;
   }
 
