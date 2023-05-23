@@ -1,9 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
+import axios from "axios";
 
-export default function Multiplayer() {
+export default function Analysis() {
   const [game, setGame] = useState(new Chess());
+  const [line, setLine] = useState([])
+
+  const getData = async () =>{
+    const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`)
+    console.log(res);
+  }
+
+  const postData = async () => {
+    const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`, line)
+    console.log(res.config.data);
+  }
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
@@ -19,6 +31,12 @@ export default function Multiplayer() {
     if (result === null) return null;
 
     setGame(new Chess(newPosition.fen()))
+    //getData()
+    console.log(result.san)
+    const newLine = line
+    newLine.push(result.san)
+    setLine(newLine)
+    postData(newLine)
     return result;
 }
 
@@ -30,8 +48,6 @@ export default function Multiplayer() {
     };
     const result = makeMove(move);
     if (result === null) return false;  // illegal move
-
-    //if (result) setTimeout(makeRandomMove, 100); // If move was successful, schedule the random move.
     return true;
   }
 
