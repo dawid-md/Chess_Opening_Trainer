@@ -7,6 +7,7 @@ export default function Analysis() {
   const [game] = useState(new Chess());
   const [fen, setFen] = useState(game.fen());
   const [line, setLine] = useState([]);
+  const [lineIndex, setlineIndex] = useState(0)
   const [undoneMoves, setUndoneMoves] = useState([]);
 
   const getData = async () =>{
@@ -24,7 +25,6 @@ export default function Analysis() {
     const isMovePossible = possibleMoves.some(possibleMove => 
         possibleMove.from === move.from && possibleMove.to === move.to
     );
-
     if (!isMovePossible) return null;
     const result = game.move(move);   //it makes changes to main game object
     if (result === null) return null;
@@ -90,6 +90,26 @@ export default function Analysis() {
     setLine(res.data.London)
   }
 
+  const playMove = () => {
+    let move = line[lineIndex]
+    const possibleMoves = game.moves();
+    const isMovePossible = possibleMoves.includes(move)
+
+    console.log(possibleMoves);
+    console.log(move);
+
+    if (!isMovePossible) return null;
+
+    const result = game.move(move);   //it makes changes to main game object
+    if (result === null) return null;
+
+    setlineIndex(lineIndex + 1)
+    setFen(game.fen());  //Triggers render with new position
+    setUndoneMoves([]); // Reset undone moves when a new move is made
+
+    return result;
+}
+
   return (
     <div>
       <Chessboard position={fen} onPieceDrop={onDrop} />
@@ -100,7 +120,7 @@ export default function Analysis() {
         <button className="load" onClick={loadLine}>Load</button>
         <button onClick={checkGame}>Check</button>
         <button onClick={resetPosition}>Reset</button>
-        <button onClick={resetPosition}>x</button>
+        <button onClick={playMove}>x</button>
       </div>
     </div>
   );
