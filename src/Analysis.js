@@ -4,8 +4,10 @@ import { Chessboard } from "react-chessboard";
 import axios from "axios";
 
 export default function Analysis() {
-  const [game, setGame] = useState(new Chess());
-  const [line, setLine] = useState([])
+  const [game] = useState(new Chess());
+  const [fen, setFen] = useState(game.fen());
+  const [line, setLine] = useState([]);
+  const [undoneMoves, setUndoneMoves] = useState([]);
 
   const getData = async () =>{
     const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`)
@@ -24,21 +26,34 @@ export default function Analysis() {
     );
 
     if (!isMovePossible) return null;
-
-    const newPosition = new Chess(game.fen())
-    const result = newPosition.move(move)
-
+    const result = game.move(move);
     if (result === null) return null;
 
-    setGame(new Chess(newPosition.fen()))
-    //getData()
-    console.log(result.san)
-    const newLine = line
-    newLine.push(result.san)
-    setLine(newLine)
-    postData(newLine)
+    setFen(game.fen());  //Triggers render with new position
+    setLine([...line, result.san]);
+    setUndoneMoves([]); // Reset undone moves when a new move is made
+
     return result;
 }
+
+  const moveBack = () => {
+    const move = game.undo();
+    if (move) {
+      setFen(game.fen());
+      setLine(line.slice(0, line.length - 1));
+      setUndoneMoves([move, ...undoneMoves]);
+    }
+  };
+
+  const moveForward = () => {
+    if (undoneMoves.length > 0) {
+      const [move, ...remainingUndoneMoves] = undoneMoves;
+      game.move(move);
+      setFen(game.fen());
+      setLine([...line, move.san]);
+      setUndoneMoves(remainingUndoneMoves);
+    }
+  };
 
   function onDrop(sourceSquare, targetSquare) {
     const move = {
@@ -51,9 +66,18 @@ export default function Analysis() {
     return true;
   }
 
-  return(
-  <div>
-    <Chessboard position={game.fen()} onPieceDrop={onDrop} />
-  </div>
-  )
+  function checkGame(){
+    console.log(game.history());
+  }
+
+  return (
+    <div>
+      <Chessboard position={fen} onPieceDrop={onDrop} />
+      <div className="buttons">
+        <button className="takeBack" onClick={moveBack}>Back</button>
+        <button className="takeForward" onClick={moveForward}>Next</button>
+        <button onClick={checkGame}>Check</button>
+      </div>
+    </div>
+  );
 }

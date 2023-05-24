@@ -6,7 +6,7 @@ import './App.css'
 import Analysis from "./Analysis";
 
 export default function App() {
-  const [variant, setVariant] = useState("multi")
+  const [variant, setVariant] = useState("analysis")
 
   const changeVariant = (newVariant) => {
     setVariant(newVariant)
@@ -15,9 +15,9 @@ export default function App() {
   return (
     <>
     <Panel changeVariant={changeVariant}/>
-    <div className="bg-dark" style={{"color" : "white"}}>{variant}</div>
-    <div className="home bg-dark" style={{"height" : "100vh"}}>
-      <div className="boardDiv" style={{"width" : "600px"}}>
+    <h3 className="currentVariant text-center">{variant}</h3>
+    <div className="home">
+      <div className="boardDiv">
         {variant === "random" ? <PlayRandomMoveEngine /> : null}
         {variant === "multi" ? <Multiplayer /> : null}
         {variant === "analysis" ? <Analysis /> : null}
