@@ -26,7 +26,7 @@ export default function Analysis() {
     );
 
     if (!isMovePossible) return null;
-    const result = game.move(move);
+    const result = game.move(move);   //it makes changes to main game object
     if (result === null) return null;
 
     setFen(game.fen());  //Triggers render with new position
@@ -70,13 +70,37 @@ export default function Analysis() {
     console.log(game.history());
   }
 
+  function resetPosition(){
+    game.reset()
+    setFen(game.fen());  //Triggers render with new position
+    setLine([]);
+    setUndoneMoves([]); 
+  }
+
+  async function saveLine(){
+    //const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`, line)
+    const res = await axios.put(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White/London.json`, line)
+    console.log(res.config.data);
+  }
+
+  async function loadLine(){
+    const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`)
+    resetPosition()
+    console.log(res.data.London);
+    setLine(res.data.London)
+  }
+
   return (
     <div>
       <Chessboard position={fen} onPieceDrop={onDrop} />
       <div className="buttons">
         <button className="takeBack" onClick={moveBack}>Back</button>
         <button className="takeForward" onClick={moveForward}>Next</button>
+        <button className="save" onClick={saveLine}>Save</button>
+        <button className="load" onClick={loadLine}>Load</button>
         <button onClick={checkGame}>Check</button>
+        <button onClick={resetPosition}>Reset</button>
+        <button onClick={resetPosition}>x</button>
       </div>
     </div>
   );
