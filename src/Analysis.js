@@ -29,8 +29,11 @@ export default function Analysis() {
     const result = game.move(move);   //it makes changes to main game object
     if (result === null) return null;
 
+    setLine([...line, {   //triggered before setFen in order to have position saved before move is made (transposition required)
+      "move" : result.san,
+      "position" : fen}]);
+
     setFen(game.fen());  //Triggers render with new position
-    setLine([...line, result.san]);
     setUndoneMoves([]); // Reset undone moves when a new move is made
 
     return result;
@@ -67,7 +70,8 @@ export default function Analysis() {
   }
 
   function checkGame(){
-    console.log(game.history());
+    // console.log(game.history());
+    console.log(line);
   }
 
   function resetPosition(){
