@@ -9,6 +9,7 @@ export default function Analysis() {
   const [line, setLine] = useState([]);
   const [lineIndex, setlineIndex] = useState(0)
   const [undoneMoves, setUndoneMoves] = useState([]);
+  const [loadedMoves, setloadedMoves] = useState([])
 
   const getData = async () =>{
     const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`)
@@ -72,8 +73,11 @@ export default function Analysis() {
   function checkGame(){
     // console.log(game.history());
     //console.log(line);
+    const availableMoves = []
     const filteredMoves = line.filter(move => move.position == fen)
-    filteredMoves.forEach(move => console.log(move.move))
+    //filteredMoves.forEach(move => console.log(move.move))
+    filteredMoves.forEach(move => availableMoves.push(move.move))
+    setloadedMoves(availableMoves)
   }
 
   function resetPosition(){
@@ -84,16 +88,27 @@ export default function Analysis() {
   }
 
   async function saveLine(){
-    //const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`, line)
-    const res = await axios.put(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White/London.json`, line)
+    const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`, line)
+    //const res = await axios.put(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White/London2.json`, line)
     console.log(res.config.data);
   }
 
   async function loadLine(){
     const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`)
     resetPosition()
-    console.log(res.data.London);
-    setLine(res.data.London)
+    const allMoves = []
+    console.log(res.data);
+
+    for (const [key] of Object.entries(res.data)) {
+      allMoves.push(...res.data[key])
+      //console.log(...res.data[key]);
+      //res.data[key].forEach(openingLine => allMoves.push(openingLine))
+    }
+
+    //Object.entries(res.data).forEach(openingLine => allMoves.push(...openingLine))
+    //res.data.London.push(...res.data.London2)
+    setLine(allMoves)
+    //console.log(line);
   }
 
   const playMove = () => {
@@ -127,6 +142,9 @@ export default function Analysis() {
         <button onClick={checkGame}>Check</button>
         <button onClick={resetPosition}>Reset</button>
         <button onClick={playMove}>x</button>
+      </div>
+      <div>
+        {loadedMoves.map(move => <p style={{color : "white"}}>{move}</p>)}
       </div>
     </div>
   );

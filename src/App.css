@@ -20,3 +20,7 @@ body{
     margin-right: auto;
     margin-bottom: 20px;
 }
+
+div[data-square="d2"] {
+    /* background-color: aqua !important; */
+}
