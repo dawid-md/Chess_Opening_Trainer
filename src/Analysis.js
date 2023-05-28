@@ -4,8 +4,8 @@ import { Chessboard } from "react-chessboard";
 import axios from "axios";
 
 export default function Analysis() {
-  const [game] = useState(new Chess());
-  const [fen, setFen] = useState(game.fen());
+  const [game] = useState(new Chess()); //main representation of the board
+  const [fen, setFen] = useState(game.fen()); //fen of current position, setFen triggers board refresh
   const [line, setLine] = useState([]);
   const [lineIndex, setlineIndex] = useState(0)
   const [undoneMoves, setUndoneMoves] = useState([]);
@@ -71,7 +71,9 @@ export default function Analysis() {
 
   function checkGame(){
     // console.log(game.history());
-    console.log(line);
+    //console.log(line);
+    const filteredMoves = line.filter(move => move.position == fen)
+    filteredMoves.forEach(move => console.log(move.move))
   }
 
   function resetPosition(){
@@ -95,7 +97,7 @@ export default function Analysis() {
   }
 
   const playMove = () => {
-    let move = line[lineIndex]
+    let move = line[lineIndex]?.move  //? checks if move exists
     const possibleMoves = game.moves();
     const isMovePossible = possibleMoves.includes(move)
 
