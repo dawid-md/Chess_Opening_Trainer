@@ -9,17 +9,8 @@ export default function Analysis() {
   const [line, setLine] = useState([]);
   const [lineIndex, setlineIndex] = useState(0)
   const [undoneMoves, setUndoneMoves] = useState([]);
-  const [loadedMoves, setloadedMoves] = useState([])
-
-  const getData = async () =>{
-    const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`)
-    console.log(res);
-  }
-
-  const postData = async () => {
-    const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`, line)
-    console.log(res.config.data);
-  }
+  const [loadedMoves, setloadedMoves] = useState([]);
+  const [hashTableMoves, sethashTableMoves] = useState([])
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
@@ -34,15 +25,15 @@ export default function Analysis() {
       "move" : result.san,
       "position" : fen}]);
 
-    setFen(game.fen());  //Triggers render with new position
-    setUndoneMoves([]); // Reset undone moves when a new move is made
+    setFen(game.fen());   //Triggers render with new position
+    setUndoneMoves([]);   //Reset undone moves when a new move is made
 
     return result;
 }
 
   const moveBack = () => {
     const move = game.undo();
-    if (move) {
+    if(move) {
       setFen(game.fen());
       setLine(line.slice(0, line.length - 1));
       setUndoneMoves([move, ...undoneMoves]);
@@ -63,20 +54,25 @@ export default function Analysis() {
     const move = {
       from: sourceSquare,
       to: targetSquare,
-      promotion: "q", // always promote to a queen for simplicity
+      promotion: "q", //always promote to a queen for simplicity
     };
     const result = makeMove(move);
-    if (result === null) return false;  // illegal move
+    if (result === null) return false;  //illegal move
     return true;
   }
 
   function checkGame(){
-    // console.log(game.history());
-    //console.log(line);
     const availableMoves = []
-    const filteredMoves = line.filter(move => move.position == fen)
-    //filteredMoves.forEach(move => console.log(move.move))
-    filteredMoves.forEach(move => availableMoves.push(move.move))
+    //const filteredMoves = line.filter(move => move.position == fen)
+    const fenPositionOnly = fen.split(' ').slice(0, 4).join(' ')
+    console.log(hashTableMoves);
+    const filteredMoves = Object.keys(hashTableMoves).filter(key => {
+      if (key === fenPositionOnly){console.log(hashTableMoves[fenPositionOnly])}
+    })
+
+    //console.log(filteredMoves);
+
+    filteredMoves.forEach(move => availableMoves.push(...move))
     setloadedMoves(availableMoves)
   }
 
@@ -96,19 +92,20 @@ export default function Analysis() {
   async function loadLine(){
     const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`)
     resetPosition()
-    const allMoves = []
-    console.log(res.data);
+    const allMoves = []   //all moves and positions loaded from database
+    const hashMoves = []  //all moves and positions without fifty-move rule = need for filtering based on the current position
 
-    for (const [key] of Object.entries(res.data)) {
+    for(const [key] of Object.entries(res.data)){
       allMoves.push(...res.data[key])
-      //console.log(...res.data[key]);
-      //res.data[key].forEach(openingLine => allMoves.push(openingLine))
+      for(let fenPos of res.data[key]){
+        const keyPos = fenPos.position.split(' ').slice(0, 4).join(' ')
+        if(hashMoves[keyPos] === undefined){ hashMoves[keyPos] = [fenPos.move] }
+        else{ hashMoves[keyPos].push(fenPos.move) }
+      }
     }
-
-    //Object.entries(res.data).forEach(openingLine => allMoves.push(...openingLine))
-    //res.data.London.push(...res.data.London2)
     setLine(allMoves)
-    //console.log(line);
+    sethashTableMoves(hashMoves)
+    console.log(hashMoves);
   }
 
   const playMove = () => {
@@ -149,3 +146,21 @@ export default function Analysis() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+// const getData = async () =>{
+//   const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`)
+//   console.log(res);
+// }
+
+// const postData = async () => {
+//   const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`, line)
+//   console.log(res.config.data);
+// }
