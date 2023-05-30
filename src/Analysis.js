@@ -63,14 +63,13 @@ export default function Analysis() {
 
   function checkGame(){
     const availableMoves = []
-    //const filteredMoves = line.filter(move => move.position == fen)
     const fenPositionOnly = fen.split(' ').slice(0, 4).join(' ')
-    console.log(hashTableMoves);
+    //console.log(hashTableMoves);
     const filteredMoves = Object.keys(hashTableMoves).filter(key => {
-      if (key === fenPositionOnly){console.log(hashTableMoves[fenPositionOnly])}
+      if (key === fenPositionOnly){
+        console.log(hashTableMoves[fenPositionOnly])
+      }
     })
-
-    //console.log(filteredMoves);
 
     filteredMoves.forEach(move => availableMoves.push(...move))
     setloadedMoves(availableMoves)
@@ -91,7 +90,7 @@ export default function Analysis() {
 
   async function loadLine(){
     const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`)
-    resetPosition()
+    //resetPosition()
     const allMoves = []   //all moves and positions loaded from database
     const hashMoves = []  //all moves and positions without fifty-move rule = need for filtering based on the current position
 
@@ -100,7 +99,7 @@ export default function Analysis() {
       for(let fenPos of res.data[key]){
         const keyPos = fenPos.position.split(' ').slice(0, 4).join(' ')
         if(hashMoves[keyPos] === undefined){ hashMoves[keyPos] = [fenPos.move] }
-        else{ hashMoves[keyPos].push(fenPos.move) }
+        else if (hashMoves[keyPos].indexOf(fenPos.move) == -1) { hashMoves[keyPos].push(fenPos.move) }  //don't add duplicates
       }
     }
     setLine(allMoves)
