@@ -6,7 +6,7 @@ import axios from "axios";
 export default function Analysis() {
   const [game] = useState(new Chess()); //main representation of the board
   const [fen, setFen] = useState(game.fen()); //fen of current position, setFen triggers board refresh
-  const [line, setLine] = useState([]);
+  const [line, setLine] = useState([]);   //moves made on the chessboard
   const [lineIndex, setlineIndex] = useState(0)
   const [undoneMoves, setUndoneMoves] = useState([]);
   const [loadedMoves, setloadedMoves] = useState([]);
@@ -23,6 +23,7 @@ export default function Analysis() {
 
     setLine([...line, {   //triggered before setFen in order to have position saved before move is made (transposition required)
       "move" : result.san,
+      "moveVer" : move,
       "position" : fen}]);
 
     setFen(game.fen());   //Triggers render with new position
@@ -67,7 +68,7 @@ export default function Analysis() {
     //console.log(hashTableMoves);
     Object.keys(hashTableMoves).filter(key => {
       if (key === fenPositionOnly){
-        console.log(hashTableMoves[fenPositionOnly])
+        console.log(hashTableMoves[fenPositionOnly])  //prints saved moves in current position
         availableMoves.push(hashTableMoves[fenPositionOnly])
       }
     })
@@ -109,7 +110,7 @@ export default function Analysis() {
     console.log(hashMoves);
   }
 
-  const playMove = () => {
+  const playMove = () => {   //triggered by x button
     let move = line[lineIndex]?.move  //? checks if move exists
     const possibleMoves = game.moves();
     const isMovePossible = possibleMoves.includes(move)
