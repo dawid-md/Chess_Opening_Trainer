@@ -65,13 +65,15 @@ export default function Analysis() {
     const availableMoves = []
     const fenPositionOnly = fen.split(' ').slice(0, 4).join(' ')
     //console.log(hashTableMoves);
-    const filteredMoves = Object.keys(hashTableMoves).filter(key => {
+    Object.keys(hashTableMoves).filter(key => {
       if (key === fenPositionOnly){
         console.log(hashTableMoves[fenPositionOnly])
+        availableMoves.push(hashTableMoves[fenPositionOnly])
       }
     })
 
-    filteredMoves.forEach(move => availableMoves.push(...move))
+    //filteredMoves.forEach(move => {availableMoves.push(...move); console.log(move)})
+    //console.log(filteredMoves);
     setloadedMoves(availableMoves)
   }
 
