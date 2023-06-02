@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import axios from "axios";
@@ -11,6 +11,8 @@ export default function Analysis() {
   const [loadedMoves, setloadedMoves] = useState([]);
   const [hashTableMoves, sethashTableMoves] = useState([])
   //const [lineIndex, setlineIndex] = useState(0)
+
+  const myRef = useRef(null)
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
@@ -63,11 +65,12 @@ export default function Analysis() {
   }
 
   function checkGame(){
+    setloadedMoves([])    //prevents printing moves when position is not found
     const fenPositionOnly = fen.split(' ').slice(0, 4).join(' ')
     Object.keys(hashTableMoves).filter(key => {
       if (key === fenPositionOnly){
         console.log(hashTableMoves[fenPositionOnly])    //prints saved moves in current position
-        setloadedMoves(hashTableMoves[fenPositionOnly])
+        setloadedMoves(hashTableMoves[fenPositionOnly]) //used for printing <p>
       }
     })
   }
@@ -101,8 +104,11 @@ export default function Analysis() {
     }
     setLine(allMoves)
     sethashTableMoves(hashMoves)
-    //console.log(hashMoves);
   }
+
+  useEffect(() => {
+    checkGame()
+  }, [fen, hashTableMoves])
 
   return (
     <div>
