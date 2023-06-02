@@ -7,10 +7,10 @@ export default function Analysis() {
   const [game] = useState(new Chess()); //main representation of the board
   const [fen, setFen] = useState(game.fen()); //fen of current position, setFen triggers board refresh
   const [line, setLine] = useState([]);   //moves made on the chessboard
-  const [lineIndex, setlineIndex] = useState(0)
   const [undoneMoves, setUndoneMoves] = useState([]);
   const [loadedMoves, setloadedMoves] = useState([]);
   const [hashTableMoves, sethashTableMoves] = useState([])
+  //const [lineIndex, setlineIndex] = useState(0)
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
@@ -63,19 +63,13 @@ export default function Analysis() {
   }
 
   function checkGame(){
-    const availableMoves = []
     const fenPositionOnly = fen.split(' ').slice(0, 4).join(' ')
-    //console.log(hashTableMoves);
     Object.keys(hashTableMoves).filter(key => {
       if (key === fenPositionOnly){
-        console.log(hashTableMoves[fenPositionOnly])  //prints saved moves in current position
-        availableMoves.push(hashTableMoves[fenPositionOnly])
+        console.log(hashTableMoves[fenPositionOnly])    //prints saved moves in current position
+        setloadedMoves(hashTableMoves[fenPositionOnly])
       }
     })
-
-    //filteredMoves.forEach(move => {availableMoves.push(...move); console.log(move)})
-    //console.log(filteredMoves);
-    setloadedMoves(availableMoves)
   }
 
   function resetPosition(){
@@ -101,34 +95,14 @@ export default function Analysis() {
       allMoves.push(...res.data[key])
       for(let fenPos of res.data[key]){
         const keyPos = fenPos.position.split(' ').slice(0, 4).join(' ')
-        if(hashMoves[keyPos] === undefined){ hashMoves[keyPos] = [fenPos.move] }
-        else if (hashMoves[keyPos].indexOf(fenPos.move) == -1) { hashMoves[keyPos].push(fenPos.move) }  //don't add duplicates
+        if(hashMoves[keyPos] === undefined){ hashMoves[keyPos] = [[fenPos.move, fenPos.moveVer]] }
+        else if (hashMoves[keyPos].indexOf(fenPos.move) == -1) { hashMoves[keyPos].push([fenPos.move, fenPos.moveVer]) }  //don't add duplicates
       }
     }
     setLine(allMoves)
     sethashTableMoves(hashMoves)
-    console.log(hashMoves);
+    //console.log(hashMoves);
   }
-
-  const playMove = () => {   //triggered by x button
-    let move = line[lineIndex]?.move  //? checks if move exists
-    const possibleMoves = game.moves();
-    const isMovePossible = possibleMoves.includes(move)
-
-    console.log(possibleMoves);
-    console.log(move);
-
-    if (!isMovePossible) return null;
-
-    const result = game.move(move);   //it makes changes to main game object
-    if (result === null) return null;
-
-    setlineIndex(lineIndex + 1)
-    setFen(game.fen());  //Triggers render with new position
-    setUndoneMoves([]); // Reset undone moves when a new move is made
-
-    return result;
-}
 
   return (
     <div>
@@ -140,10 +114,10 @@ export default function Analysis() {
         <button className="load" onClick={loadLine}>Load</button>
         <button onClick={checkGame}>Check</button>
         <button onClick={resetPosition}>Reset</button>
-        <button onClick={playMove}>x</button>
+        {/* <button onClick={playMove}>x</button> */}
       </div>
       <div>
-        {loadedMoves.map(move => <p style={{color : "white"}}>{move}</p>)}
+        {loadedMoves.map(move => <p key={move} style={{color : "white"}}>{move[0]}</p>)}
       </div>
     </div>
   );
@@ -153,6 +127,29 @@ export default function Analysis() {
 
 
 
+
+
+
+
+// const playMove = () => {   //triggered only by x button, uses lineIndex 
+//   let move = line[lineIndex]?.move    //? checks if move exists
+//   const possibleMoves = game.moves();
+//   const isMovePossible = possibleMoves.includes(move)
+
+//   console.log(possibleMoves);
+//   console.log(move);
+
+//   if (!isMovePossible) return null;
+
+//   const result = game.move(move);   //it makes changes to main game object
+//   if (result === null) return null;
+
+//   setlineIndex(lineIndex + 1)
+//   setFen(game.fen());  //Triggers render with new position
+//   setUndoneMoves([]); // Reset undone moves when a new move is made
+
+//   return result;
+// }
 
 
 
