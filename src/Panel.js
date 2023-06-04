@@ -13,8 +13,8 @@ export default function Panel({changeVariant}){
                     </a>
                     <ul className="dropdown-menu">
                         <li><a className="dropdown-item" href="#" onClick={() => changeVariant("random")}>Random Move Engine</a></li>
-                        <li><a className="dropdown-item" href="#" onClick={() => changeVariant("multi")}>Multiplayer</a></li>
-                        <li><a className="dropdown-item" href="#" onClick={() => changeVariant("analysis")}>Analysis</a></li>
+                        <li><a className="dropdown-item" href="#" onClick={() => changeVariant("Multiplayer")}>Multiplayer</a></li>
+                        <li><a className="dropdown-item" href="#" onClick={() => changeVariant("Analysis")}>Analysis</a></li>
                     </ul>
                     </li>
                 </ul>

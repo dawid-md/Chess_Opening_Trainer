@@ -6,7 +6,7 @@ import './App.css'
 import Analysis from "./Analysis";
 
 export default function App() {
-  const [variant, setVariant] = useState("analysis")
+  const [variant, setVariant] = useState("Analysis")
 
   const changeVariant = (newVariant) => {
     setVariant(newVariant)
@@ -19,8 +19,8 @@ export default function App() {
     <div className="home">
       <div className="boardDiv">
         {variant === "random" ? <PlayRandomMoveEngine /> : null}
-        {variant === "multi" ? <Multiplayer /> : null}
-        {variant === "analysis" ? <Analysis /> : null}
+        {variant === "Multiplayer" ? <Multiplayer /> : null}
+        {variant === "Analysis" ? <Analysis /> : null}
         {variant === "stockfish" ? <PlayRandomMoveEngine /> : null}
       </div>
     </div>
