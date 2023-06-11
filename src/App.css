@@ -21,6 +21,6 @@ body{
     margin-bottom: 20px;
 }
 
-div[data-square="d2"] {
+/* div[data-square="d2"] {
     background-color: aqua !important;
-}
+} */

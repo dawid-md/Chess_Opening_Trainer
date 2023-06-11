@@ -6,13 +6,11 @@ import axios from "axios";
 export default function Analysis() {
   const [game] = useState(new Chess()); //main representation of the board
   const [fen, setFen] = useState(game.fen()); //fen of current position, setFen triggers board refresh
-  const [line, setLine] = useState([]);   //moves made on the chessboard
-  const [undoneMoves, setUndoneMoves] = useState([]);
-  const [loadedMoves, setloadedMoves] = useState([]);
-  const [hashTableMoves, sethashTableMoves] = useState([])
-  //const [lineIndex, setlineIndex] = useState(0)
-
-  const myRef = useRef(null)
+  const [line, setLine] = useState([]);   //moves made on the chessboard, used for saving to database
+  const [undoneMoves, setUndoneMoves] = useState([]);   //moves taken back - saved to have possibility to click next and recall them 
+  const [loadedMoves, setloadedMoves] = useState([]);     //moves downloaded from database
+  const [hashTableMoves, sethashTableMoves] = useState([])  //stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
+  const [optionSquares, setOptionSquares] = useState({}); //available moves for current piece clicked
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
@@ -48,7 +46,10 @@ export default function Analysis() {
       const [move, ...remainingUndoneMoves] = undoneMoves;
       game.move(move);
       setFen(game.fen());
-      setLine([...line, move.san]);
+      setLine([...line, {   //triggered before setFen in order to have position saved before move is made (transposition required)
+        "move" : move.san,
+        "moveVer" : move,
+        "position" : fen}]);
       setUndoneMoves(remainingUndoneMoves);
     }
   };
@@ -65,14 +66,17 @@ export default function Analysis() {
   }
 
   function checkGame(){
-    setloadedMoves([])    //prevents printing moves when position is not found
-    const fenPositionOnly = fen.split(' ').slice(0, 4).join(' ')
-    Object.keys(hashTableMoves).filter(key => {
-      if (key === fenPositionOnly){
-        console.log(hashTableMoves[fenPositionOnly])    //prints saved moves in current position
-        setloadedMoves(hashTableMoves[fenPositionOnly]) //used for printing <p>
-      }
-    })
+    const fenPositionOnly = fen.split(' ').slice(0, 4).join(' ');
+    if(hashTableMoves.hasOwnProperty(fenPositionOnly)){
+        let newLoadedMoves = hashTableMoves[fenPositionOnly];
+        newLoadedMoves = Object.values(newLoadedMoves.reduce((acc, curr) => {
+            acc[curr[0]] = curr;
+            return acc;
+        }, {}));
+        setloadedMoves(newLoadedMoves); // used for printing <p>
+    } else {
+        setloadedMoves([]); // prevents printing moves when position is not found
+    }
   }
 
   function resetPosition(){
@@ -89,30 +93,75 @@ export default function Analysis() {
   }
 
   async function loadLine(){
-    const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`)
-    //resetPosition()
-    const allMoves = []   //all moves and positions loaded from database
-    const hashMoves = []  //all moves and positions without fifty-move rule = need for filtering based on the current position
+    const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`);
 
-    for(const [key] of Object.entries(res.data)){
-      allMoves.push(...res.data[key])
-      for(let fenPos of res.data[key]){
-        const keyPos = fenPos.position.split(' ').slice(0, 4).join(' ')
-        if(hashMoves[keyPos] === undefined){ hashMoves[keyPos] = [[fenPos.move, fenPos.moveVer]] }
-        else if (hashMoves[keyPos].indexOf(fenPos.move) == -1) { hashMoves[keyPos].push([fenPos.move, fenPos.moveVer]) }  //don't add duplicates
-      }
+    const allMoves = [];   // all moves and positions loaded from database
+    const hashMoves = {};  // all moves and positions without fifty-move rule = need for filtering based on the current position
+
+    for(const key in res.data){
+        allMoves.push(...res.data[key]);
+        for(let fenPos of res.data[key]){
+            const keyPos = fenPos.position.split(' ').slice(0, 4).join(' ');
+            if(!hashMoves[keyPos]){ 
+                hashMoves[keyPos] = [[fenPos.move, fenPos.moveVer]]; 
+            } else if (!hashMoves[keyPos].some(item => item[0] === fenPos.move)) { 
+                hashMoves[keyPos].push([fenPos.move, fenPos.moveVer]); // don't add duplicates 
+            }
+        }
     }
-    setLine(allMoves)
-    sethashTableMoves(hashMoves)
-  }
+    setLine(allMoves);
+    sethashTableMoves(hashMoves);
+}
 
   useEffect(() => {
     checkGame()
   }, [fen, hashTableMoves])
 
+  function getMoveOptions(square) {
+    const moves = game.moves({
+      square,
+      verbose: true,
+    });
+    if (moves.length === 0) {
+      return false;
+    }
+    const newSquares = {};
+    moves.map((move) => {
+      newSquares[move.to] = {
+        background:
+          game.get(move.to) && game.get(move.to).color !== game.get(square).color
+            ? "radial-gradient(circle, rgba(0,0,0,.1) 85%, transparent 85%)"
+            : "radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)",
+        borderRadius: "50%",
+      };
+      return move;
+    });
+    newSquares[square] = {
+      background: "rgba(255, 255, 100, 0.4)",
+    };
+    setOptionSquares(newSquares);
+    return true;
+  }
+
+  function onSquareClick(square) {
+    getMoveOptions(square)
+  }
+
+  function onPieceDragBegin(piece, sourceSquare){
+    getMoveOptions(sourceSquare)
+  }
+
   return (
     <div>
-      <Chessboard position={fen} onPieceDrop={onDrop} />
+      <Chessboard 
+        position={fen} 
+        onPieceDrop={onDrop} 
+        onSquareClick={onSquareClick}
+        onPieceDragBegin={onPieceDragBegin}
+        customSquareStyles={{
+          ...optionSquares,
+        }}
+      />
       <div className="buttons">
         <button className="takeBack" onClick={moveBack}>Back</button>
         <button className="takeForward" onClick={moveForward}>Next</button>
