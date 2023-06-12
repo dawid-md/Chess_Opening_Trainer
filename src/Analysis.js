@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import axios from "axios";
+import CommentBox from "./CommentBox";
 
 export default function Analysis() {
   const [game] = useState(new Chess()); //main representation of the board
@@ -11,7 +12,9 @@ export default function Analysis() {
   const [loadedMoves, setloadedMoves] = useState([]);     //moves downloaded from database
   const [hashTableMoves, sethashTableMoves] = useState([])  //stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
   const [optionSquares, setOptionSquares] = useState({}); //available moves for current piece clicked
-  const [moveFrom, setMoveFrom] = useState("");
+  const [moveFrom, setMoveFrom] = useState("");   //sets current clicked square (if legal move is possible from that square)
+
+  const [comment, setComment] = useState('');
 
 
   const makeMove = (move) => {
@@ -26,7 +29,8 @@ export default function Analysis() {
     setLine([...line, {   //triggered before setFen in order to have position saved before move is made (transposition required)
       "move" : result.san,
       "moveVer" : move,
-      "position" : fen}]);
+      "position" : fen,
+      "comment" : comment}]);
 
     setFen(game.fen());   //Triggers render with new position
     setUndoneMoves([]);   //Reset undone moves when a new move is made
@@ -97,27 +101,35 @@ export default function Analysis() {
   async function loadLine(){
     const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`);
 
-    const allMoves = [];   // all moves and positions loaded from database
+    //const allMoves = [];   // all moves and positions loaded from database
     const hashMoves = {};  // all moves and positions without fifty-move rule = need for filtering based on the current position
 
     for(const key in res.data){
-        allMoves.push(...res.data[key]);
+        //allMoves.push(...res.data[key]);
         for(let fenPos of res.data[key]){
             const keyPos = fenPos.position.split(' ').slice(0, 4).join(' ');
             if(!hashMoves[keyPos]){ 
-                hashMoves[keyPos] = [[fenPos.move, fenPos.moveVer]]; 
+                hashMoves[keyPos] = [[fenPos.move, fenPos.moveVer, fenPos.comment]]; 
             } else if (!hashMoves[keyPos].some(item => item[0] === fenPos.move)) { 
                 hashMoves[keyPos].push([fenPos.move, fenPos.moveVer]); // don't add duplicates 
             }
         }
     }
-    setLine(allMoves);
+    //setLine(allMoves);
     sethashTableMoves(hashMoves);
-}
+  }
 
   useEffect(() => {
     checkGame()
   }, [fen, hashTableMoves])
+
+  // const saveComment = () => {
+  //   setLine([...line, {   //triggered before setFen in order to have position saved before move is made (transposition required)
+  //     "move" : move.san,
+  //     "moveVer" : move,
+  //     "position" : fen,
+  //     "comment" : comment}]);
+  // }
 
   function getMoveOptions(square) {
     const moves = game.moves({
@@ -148,13 +160,10 @@ export default function Analysis() {
 
   function onSquareClick(square) {
     if(optionSquares && Object.keys(optionSquares).length !== 0) {
-      console.log('trying');
       onDrop(moveFrom, square)
     }
-    //else{
       const hasOptions = getMoveOptions(square)
       if (hasOptions) setMoveFrom(square)
-    //}
   }
 
   function onPieceDragBegin(piece, sourceSquare){
@@ -173,58 +182,20 @@ export default function Analysis() {
         }}
       />
       <div className="buttons">
-        <button className="takeBack" onClick={moveBack}>Back</button>
+        <button className="takeBack" onClick={moveBack}>Undo</button>
         <button className="takeForward" onClick={moveForward}>Next</button>
         <button className="save" onClick={saveLine}>Save</button>
         <button className="load" onClick={loadLine}>Load</button>
         <button onClick={checkGame}>Check</button>
         <button onClick={resetPosition}>Reset</button>
-        {/* <button onClick={playMove}>x</button> */}
+        {/* <button onClick={saveComment}>Save Comment</button> */}
       </div>
       <div>
         {loadedMoves.map(move => <p key={move} style={{color : "white"}}>{move[0]}</p>)}
       </div>
+      <div className="my-4">
+        <CommentBox comment={comment} setComment={setComment} />
+      </div>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-// const playMove = () => {   //triggered only by x button, uses lineIndex 
-//   let move = line[lineIndex]?.move    //? checks if move exists
-//   const possibleMoves = game.moves();
-//   const isMovePossible = possibleMoves.includes(move)
-
-//   console.log(possibleMoves);
-//   console.log(move);
-
-//   if (!isMovePossible) return null;
-
-//   const result = game.move(move);   //it makes changes to main game object
-//   if (result === null) return null;
-
-//   setlineIndex(lineIndex + 1)
-//   setFen(game.fen());  //Triggers render with new position
-//   setUndoneMoves([]); // Reset undone moves when a new move is made
-
-//   return result;
-// }
-
-
-
-
-// const getData = async () =>{
-//   const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`)
-//   console.log(res);
-// }
-
-// const postData = async () => {
-//   const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`, line)
-//   console.log(res.config.data);
-// }
