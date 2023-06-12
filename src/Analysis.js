@@ -11,6 +11,8 @@ export default function Analysis() {
   const [loadedMoves, setloadedMoves] = useState([]);     //moves downloaded from database
   const [hashTableMoves, sethashTableMoves] = useState([])  //stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
   const [optionSquares, setOptionSquares] = useState({}); //available moves for current piece clicked
+  const [moveFrom, setMoveFrom] = useState("");
+
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
@@ -28,7 +30,7 @@ export default function Analysis() {
 
     setFen(game.fen());   //Triggers render with new position
     setUndoneMoves([]);   //Reset undone moves when a new move is made
-
+    setOptionSquares([])
     return result;
 }
 
@@ -123,6 +125,7 @@ export default function Analysis() {
       verbose: true,
     });
     if (moves.length === 0) {
+      setOptionSquares([])
       return false;
     }
     const newSquares = {};
@@ -144,7 +147,14 @@ export default function Analysis() {
   }
 
   function onSquareClick(square) {
-    getMoveOptions(square)
+    if(optionSquares && Object.keys(optionSquares).length !== 0) {
+      console.log('trying');
+      onDrop(moveFrom, square)
+    }
+    //else{
+      const hasOptions = getMoveOptions(square)
+      if (hasOptions) setMoveFrom(square)
+    //}
   }
 
   function onPieceDragBegin(piece, sourceSquare){
