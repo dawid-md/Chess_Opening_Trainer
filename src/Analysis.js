@@ -13,9 +13,7 @@ export default function Analysis() {
   const [hashTableMoves, sethashTableMoves] = useState([])  //stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
   const [optionSquares, setOptionSquares] = useState({}); //available moves for current piece clicked
   const [moveFrom, setMoveFrom] = useState("");   //sets current clicked square (if legal move is possible from that square)
-
-  const [comment, setComment] = useState('');
-
+  const [comment, setComment] = useState({"position" : "", "comment" : ""});
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
@@ -98,14 +96,17 @@ export default function Analysis() {
     console.log(res.config.data);
   }
 
+  async function saveComment(){
+    const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments.json`, comment)
+    console.log(res.config.data);
+  }
+
   async function loadLine(){
     const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`);
-
     //const allMoves = [];   // all moves and positions loaded from database
     const hashMoves = {};  // all moves and positions without fifty-move rule = need for filtering based on the current position
 
     for(const key in res.data){
-        //allMoves.push(...res.data[key]);
         for(let fenPos of res.data[key]){
             const keyPos = fenPos.position.split(' ').slice(0, 4).join(' ');
             if(!hashMoves[keyPos]){ 
@@ -115,21 +116,15 @@ export default function Analysis() {
             }
         }
     }
-    //setLine(allMoves);
     sethashTableMoves(hashMoves);
   }
 
-  useEffect(() => {
-    checkGame()
-  }, [fen, hashTableMoves])
-
-  // const saveComment = () => {
-  //   setLine([...line, {   //triggered before setFen in order to have position saved before move is made (transposition required)
-  //     "move" : move.san,
-  //     "moveVer" : move,
-  //     "position" : fen,
-  //     "comment" : comment}]);
-  // }
+  async function loadComment(){
+    const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments.json`);
+    let keys = Object.keys(res.data)
+    let loadedComment = {"position" : fen, "comment" : res.data[keys[0]].comment}
+    setComment(loadedComment)
+  }
 
   function getMoveOptions(square) {
     const moves = game.moves({
@@ -170,6 +165,12 @@ export default function Analysis() {
     getMoveOptions(sourceSquare)
   }
 
+  useEffect(() => {
+    console.log("rendered");
+    checkGame()
+    //loadComment()  //not recommended to put it here
+  }, [fen, hashTableMoves])
+
   return (
     <div>
       <Chessboard 
@@ -188,13 +189,14 @@ export default function Analysis() {
         <button className="load" onClick={loadLine}>Load</button>
         <button onClick={checkGame}>Check</button>
         <button onClick={resetPosition}>Reset</button>
-        {/* <button onClick={saveComment}>Save Comment</button> */}
+        <button onClick={saveComment}>Save Comment</button>
+        <button onClick={loadComment}>Load Comment</button>
       </div>
       <div>
         {loadedMoves.map(move => <p key={move} style={{color : "white"}}>{move[0]}</p>)}
       </div>
       <div className="my-4">
-        <CommentBox comment={comment} setComment={setComment} />
+        <CommentBox comment={comment} setComment={setComment} position={fen} />
       </div>
     </div>
   );

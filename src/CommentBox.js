@@ -1,11 +1,17 @@
-import { useState } from "react";
+export default function CommentBox({comment, setComment, position}){
 
-export default function CommentBox({comment, setComment}){
-    return (
-      <textarea
-        value={comment}
-        onChange={e => setComment(e.target.value)}
-        style={{ width: 300, height: 200 }}
-      />
-    );
+  const changeComment = (fieldValue) => {
+    setComment({
+      position: position,
+      comment: fieldValue
+    });
+  }
+
+  return (
+    <textarea
+      value={comment.comment}
+      onChange={e => changeComment(e.target.value)}
+      style={{ width: 400, height: 100 }}
+    />
+  )
 }
