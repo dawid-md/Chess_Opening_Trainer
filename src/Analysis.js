@@ -13,6 +13,7 @@ export default function Analysis() {
   const [hashTableMoves, sethashTableMoves] = useState([])  //stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
   const [optionSquares, setOptionSquares] = useState({}); //available moves for current piece clicked
   const [moveFrom, setMoveFrom] = useState("");   //sets current clicked square (if legal move is possible from that square)
+  const [hashComments, sethashComments] = useState({});
   const [comment, setComment] = useState({"position" : "", "comment" : ""});
 
   const makeMove = (move) => {
@@ -27,8 +28,7 @@ export default function Analysis() {
     setLine([...line, {   //triggered before setFen in order to have position saved before move is made (transposition required)
       "move" : result.san,
       "moveVer" : move,
-      "position" : fen,
-      "comment" : comment}]);
+      "position" : fen}]);
 
     setFen(game.fen());   //Triggers render with new position
     setUndoneMoves([]);   //Reset undone moves when a new move is made
@@ -81,6 +81,12 @@ export default function Analysis() {
     } else {
         setloadedMoves([]); // prevents printing moves when position is not found
     }
+
+    let loadedComment = hashComments[fenPositionOnly] || "NA"
+    setComment({
+      position: fen,
+      comment: loadedComment
+    });
   }
 
   function resetPosition(){
@@ -109,6 +115,7 @@ export default function Analysis() {
     for(const key in res.data){
         for(let fenPos of res.data[key]){
             const keyPos = fenPos.position.split(' ').slice(0, 4).join(' ');
+            //console.log(keyPos);
             if(!hashMoves[keyPos]){ 
                 hashMoves[keyPos] = [[fenPos.move, fenPos.moveVer, fenPos.comment]]; 
             } else if (!hashMoves[keyPos].some(item => item[0] === fenPos.move)) { 
@@ -121,9 +128,19 @@ export default function Analysis() {
 
   async function loadComment(){
     const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments.json`);
-    let keys = Object.keys(res.data)
-    let loadedComment = {"position" : fen, "comment" : res.data[keys[0]].comment}
-    setComment(loadedComment)
+    const hashComments = {};
+
+    for(const key in res.data){
+        const keyPos = res.data[key]["position"].split(' ').slice(0, 4).join(' ')
+        if(!hashComments[keyPos]){ 
+          hashComments[keyPos] = res.data[key]["comment"]
+        }
+    }
+    sethashComments(hashComments)
+
+    // let keys = Object.keys(res.data)
+    // let loadedComment = {"position" : fen, "comment" : res.data[keys[0]].comment}
+    // setComment(loadedComment)
   }
 
   function getMoveOptions(square) {
@@ -169,7 +186,7 @@ export default function Analysis() {
     console.log("rendered");
     checkGame()
     //loadComment()  //not recommended to put it here
-  }, [fen, hashTableMoves])
+  }, [fen, hashTableMoves, hashComments])
 
   return (
     <div>
