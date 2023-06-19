@@ -14,7 +14,7 @@ export default function Analysis() {
   const [optionSquares, setOptionSquares] = useState({}); //available moves for current piece clicked
   const [moveFrom, setMoveFrom] = useState("");   //sets current clicked square (if legal move is possible from that square)
   const [hashComments, sethashComments] = useState({});
-  const [comment, setComment] = useState({"position" : "", "comment" : ""});
+  const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""});
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
@@ -82,7 +82,7 @@ export default function Analysis() {
         setloadedMoves([]); // prevents printing moves when position is not found
     }
 
-    let loadedComment = hashComments[fenPositionOnly] || "NA"
+    let loadedComment = hashComments[fenPositionOnly] || ""
     setComment({
       position: fen,
       comment: loadedComment
@@ -104,6 +104,12 @@ export default function Analysis() {
 
   async function saveComment(){
     const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments.json`, comment)
+    console.log(res.config.data);
+  }
+
+  async function updateComment(){
+    
+    const res = await axios.patch(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments/${comment.commentID}.json`, {"comment" : comment.comment})
     console.log(res.config.data);
   }
 
@@ -130,10 +136,13 @@ export default function Analysis() {
     const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments.json`);
     const hashComments = {};
 
+    console.log(res);
+
     for(const key in res.data){
         const keyPos = res.data[key]["position"].split(' ').slice(0, 4).join(' ')
         if(!hashComments[keyPos]){ 
           hashComments[keyPos] = res.data[key]["comment"]
+          hashComments.commentID = key
         }
     }
     sethashComments(hashComments)
@@ -208,6 +217,7 @@ export default function Analysis() {
         <button onClick={resetPosition}>Reset</button>
         <button onClick={saveComment}>Save Comment</button>
         <button onClick={loadComment}>Load Comment</button>
+        <button onClick={updateComment}>Update Comment</button>
       </div>
       <div>
         {loadedMoves.map(move => <p key={move} style={{color : "white"}}>{move[0]}</p>)}
