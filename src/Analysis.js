@@ -6,8 +6,10 @@ import CommentBox from "./CommentBox";
 
 export default function Analysis() {
   const [game] = useState(new Chess()); //main representation of the board
+  const [orientation, setOrientation] = useState("white")
   const [fen, setFen] = useState(game.fen()); //fen of current position, setFen triggers board refresh
   const [line, setLine] = useState([]);   //moves made on the chessboard, used for saving to database
+  const [moves, setMoves] = useState([])  //just for pair move notation
   const [undoneMoves, setUndoneMoves] = useState([]);   //moves taken back - saved to have possibility to click next and recall them 
   const [loadedMoves, setloadedMoves] = useState([]);     //moves downloaded from database
   const [hashTableMoves, sethashTableMoves] = useState([])  //stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
@@ -30,6 +32,13 @@ export default function Analysis() {
       "moveVer" : move,
       "position" : fen}]);
 
+    const lastMovePair = moves[moves.length - 1];
+    if (!lastMovePair || lastMovePair.length === 2) {
+      setMoves([...moves, [result.san]]);
+    } else {
+      setMoves([...moves.slice(0, -1), [...lastMovePair, result.san]]);
+    }
+
     setFen(game.fen());   //Triggers render with new position
     setUndoneMoves([]);   //Reset undone moves when a new move is made
     setOptionSquares([])
@@ -41,6 +50,14 @@ export default function Analysis() {
     if(move) {
       setFen(game.fen());
       setLine(line.slice(0, line.length - 1));
+
+      const lastMovePair = moves[moves.length - 1];
+      if (lastMovePair.length === 2) {
+        setMoves([...moves.slice(0, -1), [lastMovePair[0]]]); //delete last pair and add one remembered move to it
+      } else {
+        setMoves([...moves.slice(0, -1)]);
+      }
+
       setUndoneMoves([move, ...undoneMoves]);
     }
   };
@@ -54,6 +71,14 @@ export default function Analysis() {
         "move" : move.san,
         "moveVer" : move,
         "position" : fen}]);
+
+      const lastMovePair = moves[moves.length - 1];
+      if (!lastMovePair || lastMovePair.length === 2) {
+        setMoves([...moves, [move.san]]);
+      } else {
+        setMoves([...moves.slice(0, -1), [...lastMovePair, move.san]]);
+      }
+
       setUndoneMoves(remainingUndoneMoves);
     }
   };
@@ -82,10 +107,13 @@ export default function Analysis() {
         setloadedMoves([]); // prevents printing moves when position is not found
     }
 
-    let loadedComment = hashComments[fenPositionOnly] || ""
+    let loadedComment = hashComments[fenPositionOnly]?.comment
+    let loadedCommentID = hashComments[fenPositionOnly]?.commentID
+    
     setComment({
       position: fen,
-      comment: loadedComment
+      comment: loadedComment || "",
+      commentID: loadedCommentID || ""
     });
   }
 
@@ -108,7 +136,7 @@ export default function Analysis() {
   }
 
   async function updateComment(){
-    
+    console.log(comment);
     const res = await axios.patch(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments/${comment.commentID}.json`, {"comment" : comment.comment})
     console.log(res.config.data);
   }
@@ -121,7 +149,6 @@ export default function Analysis() {
     for(const key in res.data){
         for(let fenPos of res.data[key]){
             const keyPos = fenPos.position.split(' ').slice(0, 4).join(' ');
-            //console.log(keyPos);
             if(!hashMoves[keyPos]){ 
                 hashMoves[keyPos] = [[fenPos.move, fenPos.moveVer, fenPos.comment]]; 
             } else if (!hashMoves[keyPos].some(item => item[0] === fenPos.move)) { 
@@ -136,20 +163,16 @@ export default function Analysis() {
     const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments.json`);
     const hashComments = {};
 
-    console.log(res);
-
     for(const key in res.data){
         const keyPos = res.data[key]["position"].split(' ').slice(0, 4).join(' ')
         if(!hashComments[keyPos]){ 
-          hashComments[keyPos] = res.data[key]["comment"]
-          hashComments.commentID = key
+          hashComments[keyPos] = {
+            "comment" : res.data[key]["comment"],
+            "commentID" : key
+          }
         }
     }
     sethashComments(hashComments)
-
-    // let keys = Object.keys(res.data)
-    // let loadedComment = {"position" : fen, "comment" : res.data[keys[0]].comment}
-    // setComment(loadedComment)
   }
 
   function getMoveOptions(square) {
@@ -201,6 +224,7 @@ export default function Analysis() {
     <div>
       <Chessboard 
         position={fen} 
+        boardOrientation={orientation}
         onPieceDrop={onDrop} 
         onSquareClick={onSquareClick}
         onPieceDragBegin={onPieceDragBegin}
@@ -218,6 +242,10 @@ export default function Analysis() {
         <button onClick={saveComment}>Save Comment</button>
         <button onClick={loadComment}>Load Comment</button>
         <button onClick={updateComment}>Update Comment</button>
+        <button onClick={() => {
+          if(orientation === "white"){setOrientation("black")}
+          else{setOrientation("white")}
+        }}>Flip Board</button>
       </div>
       <div>
         {loadedMoves.map(move => <p key={move} style={{color : "white"}}>{move[0]}</p>)}
@@ -225,6 +253,13 @@ export default function Analysis() {
       <div className="my-4">
         <CommentBox comment={comment} setComment={setComment} position={fen} />
       </div>
+      <ul className="text-white">
+        {moves.map((movePair, index) => (
+          <li key={index}>
+            {index + 1}. {movePair.join(', ')}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -3,7 +3,8 @@ export default function CommentBox({comment, setComment, position}){
   const changeComment = (fieldValue) => {
     setComment({
       position: position,
-      comment: fieldValue
+      comment: fieldValue,
+      commentID: comment.commentID
     });
   }
 
