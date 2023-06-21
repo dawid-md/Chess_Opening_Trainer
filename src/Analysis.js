@@ -121,6 +121,7 @@ export default function Analysis() {
     game.reset()
     setFen(game.fen());  //Triggers render with new position
     setLine([]);
+    setMoves([])
     setUndoneMoves([]); 
   }
 
@@ -217,49 +218,61 @@ export default function Analysis() {
   useEffect(() => {
     console.log("rendered");
     checkGame()
-    //loadComment()  //not recommended to put it here
   }, [fen, hashTableMoves, hashComments])
 
   return (
-    <div>
-      <Chessboard 
-        position={fen} 
-        boardOrientation={orientation}
-        onPieceDrop={onDrop} 
-        onSquareClick={onSquareClick}
-        onPieceDragBegin={onPieceDragBegin}
-        customSquareStyles={{
-          ...optionSquares,
-        }}
-      />
-      <div className="buttons">
-        <button className="takeBack" onClick={moveBack}>Undo</button>
-        <button className="takeForward" onClick={moveForward}>Next</button>
-        <button className="save" onClick={saveLine}>Save</button>
-        <button className="load" onClick={loadLine}>Load</button>
-        <button onClick={checkGame}>Check</button>
-        <button onClick={resetPosition}>Reset</button>
-        <button onClick={saveComment}>Save Comment</button>
-        <button onClick={loadComment}>Load Comment</button>
-        <button onClick={updateComment}>Update Comment</button>
-        <button onClick={() => {
-          if(orientation === "white"){setOrientation("black")}
-          else{setOrientation("white")}
-        }}>Flip Board</button>
+    <div className="mainDiv">
+
+      <div className="chessboardDiv">
+        <Chessboard 
+          position={fen} 
+          boardOrientation={orientation}
+          onPieceDrop={onDrop} 
+          onSquareClick={onSquareClick}
+          onPieceDragBegin={onPieceDragBegin}
+          customSquareStyles={{...optionSquares}}
+        />
+
+        <div className="buttons">
+          <button className="btn btn-light btn-sm mx-1" onClick={moveBack}>Undo</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={moveForward}>Next</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={saveLine}>Save</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={loadLine}>Load</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={checkGame}>Check</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}>Reset</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={() => {
+            if(orientation === "white"){setOrientation("black")}
+            else{setOrientation("white")}
+          }}>Flip Board</button>
+        </div>
       </div>
-      <div>
+
+      <div className="loadedMoves"> 
         {loadedMoves.map(move => <p key={move} style={{color : "white"}}>{move[0]}</p>)}
       </div>
-      <div className="my-4">
-        <CommentBox comment={comment} setComment={setComment} position={fen} />
+      
+      <div className="rightpanel">
+
+        <div className="moveMades mx-2 px-1">
+          <ul className="text-white list-unstyled">
+            {moves.map((movePair, index) => (
+              <li key={index}>
+                {index + 1}. {movePair.join(', ')}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="commentsDiv mx-2 my-2">
+          <CommentBox comment={comment} setComment={setComment} position={fen} />
+        </div>
+
+        <button className="btn btn-light btn-sm mx-2" onClick={saveComment}>Save</button>
+        <button className="btn btn-light btn-sm" onClick={loadComment}>Load</button>
+        <button className="btn btn-light btn-sm mx-2" onClick={updateComment}>Update</button>
+
       </div>
-      <ul className="text-white">
-        {moves.map((movePair, index) => (
-          <li key={index}>
-            {index + 1}. {movePair.join(', ')}
-          </li>
-        ))}
-      </ul>
+
     </div>
   );
 }

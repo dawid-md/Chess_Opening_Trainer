@@ -9,10 +9,10 @@ export default function CommentBox({comment, setComment, position}){
   }
 
   return (
-    <textarea
+    <textarea className="form-control text-white bg-dark" rows="10"
       value={comment?.comment}
       onChange={e => changeComment(e.target.value)}
-      style={{ width: 400, height: 100 }}
+      style={{ width: 300 }}
     />
   )
 }
