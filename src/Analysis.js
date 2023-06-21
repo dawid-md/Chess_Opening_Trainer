@@ -223,7 +223,7 @@ export default function Analysis() {
   return (
     <div className="mainDiv">
 
-      <div className="chessboardDiv">
+      <div className="chessboardDiv w-75">
         <Chessboard 
           position={fen} 
           boardOrientation={orientation}
@@ -238,7 +238,7 @@ export default function Analysis() {
           <button className="btn btn-light btn-sm mx-1" onClick={moveForward}>Next</button>
           <button className="btn btn-light btn-sm mx-1" onClick={saveLine}>Save</button>
           <button className="btn btn-light btn-sm mx-1" onClick={loadLine}>Load</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={checkGame}>Check</button>
+          {/* <button className="btn btn-light btn-sm mx-1" onClick={checkGame}>Check</button> */}
           <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}>Reset</button>
           <button className="btn btn-light btn-sm mx-1" onClick={() => {
             if(orientation === "white"){setOrientation("black")}
@@ -266,10 +266,12 @@ export default function Analysis() {
         <div className="commentsDiv mx-2 my-2">
           <CommentBox comment={comment} setComment={setComment} position={fen} />
         </div>
-
-        <button className="btn btn-light btn-sm mx-2" onClick={saveComment}>Save</button>
-        <button className="btn btn-light btn-sm" onClick={loadComment}>Load</button>
-        <button className="btn btn-light btn-sm mx-2" onClick={updateComment}>Update</button>
+        
+        <div className="commentButtons text-center">
+          <button className="btn btn-light btn-sm mx-2" onClick={saveComment}>Save</button>
+          <button className="btn btn-light btn-sm" onClick={loadComment}>Load</button>
+          <button className="btn btn-light btn-sm mx-2" onClick={updateComment}>Update</button>
+        </div>
 
       </div>
 
