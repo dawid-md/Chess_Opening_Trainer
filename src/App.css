@@ -27,7 +27,12 @@
     min-height: 257px !important;
 }
 
-.form-control, .moveMades{
+.leftPanel{
+    width: 50px;
+    height: 200px;
+}
+
+.form-control, .moveMades, .leftPanel{
     border: 1px solid;
     border-radius: 4px;
     border-color: rgb(99, 99, 99);

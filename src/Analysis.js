@@ -18,6 +18,17 @@ export default function Analysis() {
   const [hashComments, sethashComments] = useState({});
   const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""});
 
+  const [pgnData, setPgnData] = useState({
+    event: "",
+    site: "",
+    date: "",
+    round: "",
+    white: "",
+    black: "",
+    result: "*",
+    moves: []
+  });
+
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
     const isMovePossible = possibleMoves.some(possibleMove => 
@@ -31,6 +42,11 @@ export default function Analysis() {
       "move" : result.san,
       "moveVer" : move,
       "position" : fen}]);
+
+      setPgnData(prev => ({
+        ...prev, 
+        moves: [...prev.moves, result.san]
+      }));
 
     const lastMovePair = moves[moves.length - 1];
     if (!lastMovePair || lastMovePair.length === 2) {
@@ -131,15 +147,29 @@ export default function Analysis() {
     console.log(res.config.data);
   }
 
-  async function saveComment(){
-    const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments.json`, comment)
+  async function updateLine(){
+    const res = await axios.patch(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`, line)
+    //const res = await axios.put(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White/London2.json`, line)
     console.log(res.config.data);
   }
 
-  async function updateComment(){
-    console.log(comment);
-    const res = await axios.patch(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments/${comment.commentID}.json`, {"comment" : comment.comment})
-    console.log(res.config.data);
+  async function saveComment(){
+    if(comment != ""){
+      const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments.json`, comment)
+      console.log("comment saved");
+    } 
+    else{
+      const res = await axios.patch(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments/${comment.commentID}.json`, {"comment" : comment.comment})
+      console.log("comment updated");
+    }
+    loadComment()
+  }
+
+  async function deleteComment(){
+    if(comment.commentID != ""){
+      const res = await axios.delete(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments/${comment.commentID}.json`)
+      loadComment()
+    }
   }
 
   async function loadLine(){
@@ -223,6 +253,12 @@ export default function Analysis() {
   return (
     <div className="mainDiv">
 
+      <div className="leftPanel text-center mx-2 px-1">
+        <div className="loadedMoves"> 
+          {loadedMoves.map(move => <p key={move} style={{color : "white"}}>{move[0]}</p>)}
+        </div>
+      </div>
+
       <div className="chessboardDiv w-75">
         <Chessboard 
           position={fen} 
@@ -237,6 +273,7 @@ export default function Analysis() {
           <button className="btn btn-light btn-sm mx-1" onClick={moveBack}>Undo</button>
           <button className="btn btn-light btn-sm mx-1" onClick={moveForward}>Next</button>
           <button className="btn btn-light btn-sm mx-1" onClick={saveLine}>Save</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={updateLine}>Update</button>
           <button className="btn btn-light btn-sm mx-1" onClick={loadLine}>Load</button>
           {/* <button className="btn btn-light btn-sm mx-1" onClick={checkGame}>Check</button> */}
           <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}>Reset</button>
@@ -245,10 +282,6 @@ export default function Analysis() {
             else{setOrientation("white")}
           }}>Flip Board</button>
         </div>
-      </div>
-
-      <div className="loadedMoves"> 
-        {loadedMoves.map(move => <p key={move} style={{color : "white"}}>{move[0]}</p>)}
       </div>
       
       <div className="rightpanel">
@@ -270,7 +303,8 @@ export default function Analysis() {
         <div className="commentButtons text-center">
           <button className="btn btn-light btn-sm mx-2" onClick={saveComment}>Save</button>
           <button className="btn btn-light btn-sm" onClick={loadComment}>Load</button>
-          <button className="btn btn-light btn-sm mx-2" onClick={updateComment}>Update</button>
+          <button className="btn btn-light btn-sm mx-2" onClick={deleteComment}>Delete</button>
+          {/* <button className="btn btn-light btn-sm mx-2" onClick={updateComment}>Update</button> */}
         </div>
 
       </div>
