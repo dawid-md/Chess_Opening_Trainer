@@ -10,6 +10,7 @@ export default function Analysis() {
   const [fen, setFen] = useState(game.fen()); //fen of current position, setFen triggers board refresh
   const [line, setLine] = useState([]);   //moves made on the chessboard, used for saving to database
   const [moves, setMoves] = useState([])  //just for pair move notation
+  const [currentMoveIndex, setcurrentMoveIndex] = useState(0)
   const [undoneMoves, setUndoneMoves] = useState([]);   //moves taken back - saved to have possibility to click next and recall them 
   const [loadedMoves, setloadedMoves] = useState([]);     //moves downloaded from database
   const [hashTableMoves, sethashTableMoves] = useState([])  //stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
@@ -43,6 +44,12 @@ export default function Analysis() {
       "moveVer" : move,
       "position" : fen}]);
 
+    
+      console.log(pgnData);
+    if(pgnData.moves[currentMoveIndex] != undefined){
+      console.log("not undefined");
+    }
+
       setPgnData(prev => ({
         ...prev, 
         moves: [...prev.moves, result.san]
@@ -55,6 +62,7 @@ export default function Analysis() {
       setMoves([...moves.slice(0, -1), [...lastMovePair, result.san]]);
     }
 
+    setcurrentMoveIndex(currentMoveIndex + 1)
     setFen(game.fen());   //Triggers render with new position
     setUndoneMoves([]);   //Reset undone moves when a new move is made
     setOptionSquares([])
