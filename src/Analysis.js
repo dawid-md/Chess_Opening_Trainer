@@ -44,16 +44,18 @@ export default function Analysis() {
       "moveVer" : move,
       "position" : fen}]);
 
-    
-      console.log(pgnData);
-    if(pgnData.moves[currentMoveIndex] != undefined){
-      console.log("not undefined");
-    }
-
+    if(pgnData.moves[line.length] == undefined){
       setPgnData(prev => ({
         ...prev, 
         moves: [...prev.moves, result.san]
       }));
+    }
+    else{
+      setPgnData(prev => ({
+        ...prev, 
+        moves: [...prev.moves, [result.san]]
+      }));
+    }
 
     const lastMovePair = moves[moves.length - 1];
     if (!lastMovePair || lastMovePair.length === 2) {
@@ -151,13 +153,11 @@ export default function Analysis() {
 
   async function saveLine(){
     const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`, line)
-    //const res = await axios.put(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White/London2.json`, line)
     console.log(res.config.data);
   }
 
   async function updateLine(){
     const res = await axios.patch(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`, line)
-    //const res = await axios.put(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White/London2.json`, line)
     console.log(res.config.data);
   }
 
@@ -182,7 +182,6 @@ export default function Analysis() {
 
   async function loadLine(){
     const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`);
-    //const allMoves = [];   // all moves and positions loaded from database
     const hashMoves = {};  // all moves and positions without fifty-move rule = need for filtering based on the current position
 
     for(const key in res.data){
@@ -254,10 +253,12 @@ export default function Analysis() {
   }
 
   useEffect(() => {
-    console.log("rendered");
+    //console.log("rendered");
     checkGame()
   }, [fen, hashTableMoves, hashComments])
 
+
+  
   return (
     <div className="mainDiv">
 
