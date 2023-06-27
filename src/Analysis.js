@@ -18,17 +18,21 @@ export default function Analysis() {
   const [moveFrom, setMoveFrom] = useState("");   //sets current clicked square (if legal move is possible from that square)
   const [hashComments, sethashComments] = useState({});
   const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""});
+  const [variation, setVariation] = useState([])
 
-  const [pgnData, setPgnData] = useState({
-    event: "",
-    site: "",
-    date: "",
-    round: "",
-    white: "",
-    black: "",
-    result: "*",
-    moves: []
-  });
+  //const [history, setHistory] = useState([]);
+  //const [currentIndex, setCurrentIndex] = useState(-1);
+
+  // const [pgnData, setPgnData] = useState({
+  //   event: "",
+  //   site: "",
+  //   date: "",
+  //   round: "",
+  //   white: "",
+  //   black: "",
+  //   result: "*",
+  //   moves: []
+  // });
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
@@ -43,28 +47,89 @@ export default function Analysis() {
       "move" : result.san,
       "moveVer" : move,
       "position" : fen}]);
+    
+    if(moves.length > currentMoveIndex || variation.length > 0){
 
-    if(pgnData.moves[line.length] == undefined){
-      setPgnData(prev => ({
-        ...prev, 
-        moves: [...prev.moves, result.san]
-      }));
+      // let foundMatch = moves.some(move => {
+      //   return move == result.san || (Array.isArray(move) && move[0] == result.san);
+      // });
+
+      let foundMatch = false
+      let j = currentMoveIndex
+
+      // If the first item is a string, compare it with result.san
+      if (typeof moves[j] === 'string') {
+        foundMatch = moves[j] === result.san;
+        j++;
+      }
+
+      // If first comparison was not a match, continue checking the next items
+      while(!foundMatch && j < moves.length && Array.isArray(moves[j])) {
+        if(moves[j].length > 0 && moves[j][0] === result.san) {
+            foundMatch = true;
+        }
+        j++;
+      }
+
+      if (!foundMatch) {
+          setVariation([...variation, result.san])  //this line only executes if no match is found
+      }
+      else{
+        console.log("length of moves " + moves.length);
+      }
+      
+      setcurrentMoveIndex(currentMoveIndex + 1)
+      //setcurrentMoveIndex(moves.length)
+
     }
     else{
-      setPgnData(prev => ({
-        ...prev, 
-        moves: [...prev.moves, [result.san]]
-      }));
+      setMoves([...moves, result.san])
+      setcurrentMoveIndex(currentMoveIndex + 1)
     }
 
-    const lastMovePair = moves[moves.length - 1];
-    if (!lastMovePair || lastMovePair.length === 2) {
-      setMoves([...moves, [result.san]]);
-    } else {
-      setMoves([...moves.slice(0, -1), [...lastMovePair, result.san]]);
-    }
+    // if(pgnData.moves[line.length] == undefined){  //building pgn with variations
+    //   setPgnData(prev => ({
+    //     ...prev, 
+    //     moves: [...prev.moves, result.san]
+    //   }));
+    // }
+    // else{
+    //   setPgnData(prev => ({
+    //     ...prev, 
+    //     moves: [...prev.moves, [result.san]]
+    //   }));
+    // }
 
-    setcurrentMoveIndex(currentMoveIndex + 1)
+    // console.log(currentIndex);
+    // console.log(history.length);
+    // if (currentIndex < history.length - 1) {  //------------------------------------
+    //   setHistory((prevHistory) => [
+    //     ...prevHistory.slice(0, currentIndex + 1),
+    //     { move, variations: [] },
+    //   ]);
+    // } else {
+    //   setHistory((prevHistory) => [...prevHistory, { move, variations: [] }]);
+    // }
+    // setCurrentIndex((prevIndex) => prevIndex + 1);  //------------------------------------
+
+    // if (currentIndex > history.length - 1) {
+    //   console.log("create variant");
+    //   setHistory((prevHistory) => {
+    //     const newHistory = [...prevHistory]
+    //     newHistory[currentIndex].variations.push({ move })
+    //     return newHistory
+    //   });
+    // }
+    //console.log(moves);
+
+    // const lastMovePair = moves[moves.length - 1];
+    // if (!lastMovePair || lastMovePair.length === 2) {
+      
+    //   setMoves([...moves, [result.san]]);
+    // } else {
+    //   setMoves([...moves.slice(0, -1), [...lastMovePair, result.san]]);
+    // } 
+
     setFen(game.fen());   //Triggers render with new position
     setUndoneMoves([]);   //Reset undone moves when a new move is made
     setOptionSquares([])
@@ -77,14 +142,28 @@ export default function Analysis() {
       setFen(game.fen());
       setLine(line.slice(0, line.length - 1));
 
-      const lastMovePair = moves[moves.length - 1];
-      if (lastMovePair.length === 2) {
-        setMoves([...moves.slice(0, -1), [lastMovePair[0]]]); //delete last pair and add one remembered move to it
-      } else {
-        setMoves([...moves.slice(0, -1)]);
+      // const lastMovePair = moves[moves.length - 1];
+      // if (lastMovePair.length === 2) {
+      //   setMoves([...moves.slice(0, -1), [lastMovePair[0]]]); //delete last pair and add one remembered move to it
+      // } else {
+      //   setMoves([...moves.slice(0, -1)]);
+      // }
+
+      if(variation.length > 0){
+        const newMoves = moves
+        newMoves.splice(currentMoveIndex, 0, variation)
+        setMoves(newMoves)
+        setVariation([])
       }
 
       setUndoneMoves([move, ...undoneMoves]);
+
+      setcurrentMoveIndex(currentMoveIndex - 1)
+
+      // if (currentIndex > -1) {    //------------------------------
+      //   setCurrentIndex((prevIndex) => prevIndex - 1);
+      // }
+
     }
   };
 
@@ -98,12 +177,12 @@ export default function Analysis() {
         "moveVer" : move,
         "position" : fen}]);
 
-      const lastMovePair = moves[moves.length - 1];
-      if (!lastMovePair || lastMovePair.length === 2) {
-        setMoves([...moves, [move.san]]);
-      } else {
-        setMoves([...moves.slice(0, -1), [...lastMovePair, move.san]]);
-      }
+      // const lastMovePair = moves[moves.length - 1];
+      // if (!lastMovePair || lastMovePair.length === 2) {
+      //   setMoves([...moves, [move.san]]);
+      // } else {
+      //   setMoves([...moves.slice(0, -1), [...lastMovePair, move.san]]);
+      // }
 
       setUndoneMoves(remainingUndoneMoves);
     }
@@ -141,6 +220,9 @@ export default function Analysis() {
       comment: loadedComment || "",
       commentID: loadedCommentID || ""
     });
+
+    //console.log(moves);
+    //console.log(line.length);
   }
 
   function resetPosition(){
@@ -258,7 +340,7 @@ export default function Analysis() {
   }, [fen, hashTableMoves, hashComments])
 
 
-  
+
   return (
     <div className="mainDiv">
 
@@ -284,7 +366,7 @@ export default function Analysis() {
           <button className="btn btn-light btn-sm mx-1" onClick={saveLine}>Save</button>
           <button className="btn btn-light btn-sm mx-1" onClick={updateLine}>Update</button>
           <button className="btn btn-light btn-sm mx-1" onClick={loadLine}>Load</button>
-          {/* <button className="btn btn-light btn-sm mx-1" onClick={checkGame}>Check</button> */}
+          <button className="btn btn-light btn-sm mx-1" onClick={checkGame}>Check</button>
           <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}>Reset</button>
           <button className="btn btn-light btn-sm mx-1" onClick={() => {
             if(orientation === "white"){setOrientation("black")}
@@ -297,11 +379,11 @@ export default function Analysis() {
 
         <div className="moveMades mx-2 px-1">
           <ul className="text-white list-unstyled">
-            {moves.map((movePair, index) => (
+            {/* {moves.map((movePair, index) => (
               <li key={index}>
                 {index + 1}. {movePair.join(', ')}
               </li>
-            ))}
+            ))} */}
           </ul>
         </div>
 
@@ -321,3 +403,9 @@ export default function Analysis() {
     </div>
   );
 }
+
+
+
+
+
+//const lastItem = Object.values(line).pop() //last object of the array
