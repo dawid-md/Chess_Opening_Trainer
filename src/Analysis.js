@@ -10,7 +10,7 @@ export default function Analysis() {
   const [fen, setFen] = useState(game.fen()); //fen of current position, setFen triggers board refresh
   const [line, setLine] = useState([]);   //moves made on the chessboard, used for saving to database
   const [moves, setMoves] = useState([])  //just for pair move notation
-  const [currentMoveIndex, setcurrentMoveIndex] = useState(0)
+  const [currentMoveIndex, setcurrentMoveIndex] = useState([0])
   const [undoneMoves, setUndoneMoves] = useState([]);   //moves taken back - saved to have possibility to click next and recall them 
   const [loadedMoves, setloadedMoves] = useState([]);     //moves downloaded from database
   const [hashTableMoves, sethashTableMoves] = useState([])  //stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
@@ -48,14 +48,14 @@ export default function Analysis() {
       "moveVer" : move,
       "position" : fen}]);
     
-    if(moves.length > currentMoveIndex || variation.length > 0){
+    if(moves.length > currentMoveIndex[currentMoveIndex.length-1] || variation.length > 0){
 
       // let foundMatch = moves.some(move => {
       //   return move == result.san || (Array.isArray(move) && move[0] == result.san);
       // });
 
       let foundMatch = false
-      let j = currentMoveIndex
+      let j = currentMoveIndex[currentMoveIndex.length-1]
 
       // If the first item is a string, compare it with result.san
       if (typeof moves[j] === 'string') {
@@ -71,20 +71,23 @@ export default function Analysis() {
         j++;
       }
 
-      if (!foundMatch) {
+      if (!foundMatch && variation.length == 0) {
           setVariation([...variation, result.san])  //this line only executes if no match is found
+          setcurrentMoveIndex(prev => [...prev, 1])
+      }
+      else if (!foundMatch) {
+          setcurrentMoveIndex([currentMoveIndex[currentMoveIndex.length-1] + 1])
       }
       else{
         console.log("length of moves " + moves.length);
       }
       
-      setcurrentMoveIndex(currentMoveIndex + 1)
-      //setcurrentMoveIndex(moves.length)
+      //
 
     }
     else{
       setMoves([...moves, result.san])
-      setcurrentMoveIndex(currentMoveIndex + 1)
+      setcurrentMoveIndex([currentMoveIndex[currentMoveIndex.length-1] + 1])
     }
 
     // if(pgnData.moves[line.length] == undefined){  //building pgn with variations
@@ -151,14 +154,14 @@ export default function Analysis() {
 
       if(variation.length > 0){
         const newMoves = moves
-        newMoves.splice(currentMoveIndex, 0, variation)
-        setMoves(newMoves)
-        setVariation([])
+        //newMoves.splice(currentMoveIndex, 0, variation)
+        //setMoves(newMoves)
+        //setVariation([])
       }
 
       setUndoneMoves([move, ...undoneMoves]);
 
-      setcurrentMoveIndex(currentMoveIndex - 1)
+      setcurrentMoveIndex([currentMoveIndex[currentMoveIndex.length-1] - 1])
 
       // if (currentIndex > -1) {    //------------------------------
       //   setCurrentIndex((prevIndex) => prevIndex - 1);
