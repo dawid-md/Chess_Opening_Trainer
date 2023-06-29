@@ -48,11 +48,7 @@ export default function Analysis() {
       "moveVer" : move,
       "position" : fen}]);
     
-    if(moves.length > currentMoveIndex[currentMoveIndex.length-1] || variation.length > 0){
-
-      // let foundMatch = moves.some(move => {
-      //   return move == result.san || (Array.isArray(move) && move[0] == result.san);
-      // });
+    if((moves.length > currentMoveIndex[0] && variation.length == 0) || variation.length > 0){
 
       let foundMatch = false
       let j = currentMoveIndex[currentMoveIndex.length-1]
@@ -63,7 +59,7 @@ export default function Analysis() {
         j++;
       }
 
-      // If first comparison was not a match, continue checking the next items
+      // If first comparison was not a match, continue checking the next items (they are arrays)
       while(!foundMatch && j < moves.length && Array.isArray(moves[j])) {
         if(moves[j].length > 0 && moves[j][0] === result.san) {
             foundMatch = true;
@@ -72,11 +68,16 @@ export default function Analysis() {
       }
 
       if (!foundMatch && variation.length == 0) {
-          setVariation([...variation, result.san])  //this line only executes if no match is found
-          setcurrentMoveIndex(prev => [...prev, 1])
+        setVariation([...variation, result.san])  //this line only executes if no match is found
+        setcurrentMoveIndex(prev => [...prev, 1])
       }
-      else if (!foundMatch) {
-          setcurrentMoveIndex([currentMoveIndex[currentMoveIndex.length-1] + 1])
+      else if (!foundMatch && currentMoveIndex[currentMoveIndex.length - 1] == variation.length) {
+        setVariation([...variation, result.san])
+        setcurrentMoveIndex(prev => {
+          let newState = [...prev];
+          newState[newState.length - 1] = newState[newState.length - 1] + 1
+          return newState;
+        })
       }
       else{
         console.log("length of moves " + moves.length);
@@ -85,9 +86,20 @@ export default function Analysis() {
       //
 
     }
+
+    else if (currentMoveIndex.length > 1) {
+      if(currentMoveIndex[currentMoveIndex.length - 1] < variation.length){
+        setVariation(prev => [...prev, [result.san]])
+      }
+    }
+
     else{
       setMoves([...moves, result.san])
-      setcurrentMoveIndex([currentMoveIndex[currentMoveIndex.length-1] + 1])
+      setcurrentMoveIndex(prev => {
+        let newState = [...prev];
+        newState[newState.length - 1] = newState[newState.length - 1] + 1
+        return newState;
+      })
     }
 
     // if(pgnData.moves[line.length] == undefined){  //building pgn with variations
@@ -144,6 +156,28 @@ export default function Analysis() {
     if(move) {
       setFen(game.fen());
       setLine(line.slice(0, line.length - 1));
+      setUndoneMoves([move, ...undoneMoves]);
+
+      if(variation.length > 0 && currentMoveIndex[currentMoveIndex.length -1] == 1){
+        const newMoves = moves
+        newMoves.splice(currentMoveIndex[0]+1, 0, variation)
+        setMoves(newMoves)
+        setVariation([])
+        setcurrentMoveIndex(prev => {
+          let newState = [...prev]
+          newState.splice(-1,1)
+          return newState
+        })
+      }
+
+      else {
+        setcurrentMoveIndex(prev => {
+          let newState = [...prev]
+          newState[newState.length - 1] = newState[newState.length - 1] - 1
+          return newState
+        })
+      }
+    }
 
       // const lastMovePair = moves[moves.length - 1];
       // if (lastMovePair.length === 2) {
@@ -151,23 +185,6 @@ export default function Analysis() {
       // } else {
       //   setMoves([...moves.slice(0, -1)]);
       // }
-
-      if(variation.length > 0){
-        const newMoves = moves
-        //newMoves.splice(currentMoveIndex, 0, variation)
-        //setMoves(newMoves)
-        //setVariation([])
-      }
-
-      setUndoneMoves([move, ...undoneMoves]);
-
-      setcurrentMoveIndex([currentMoveIndex[currentMoveIndex.length-1] - 1])
-
-      // if (currentIndex > -1) {    //------------------------------
-      //   setCurrentIndex((prevIndex) => prevIndex - 1);
-      // }
-
-    }
   };
 
   const moveForward = () => {
