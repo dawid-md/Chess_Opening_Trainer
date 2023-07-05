@@ -20,20 +20,6 @@ export default function Analysis() {
   const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""});
   const [variation, setVariation] = useState([])
 
-  //const [history, setHistory] = useState([]);
-  //const [currentIndex, setCurrentIndex] = useState(-1);
-
-  // const [pgnData, setPgnData] = useState({
-  //   event: "",
-  //   site: "",
-  //   date: "",
-  //   round: "",
-  //   white: "",
-  //   black: "",
-  //   result: "*",
-  //   moves: []
-  // });
-
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
     const isMovePossible = possibleMoves.some(possibleMove => 
@@ -53,11 +39,14 @@ export default function Analysis() {
       let foundMatch = false
       let j = currentMoveIndex[currentMoveIndex.length-1]
 
+      console.log(result);
+
       // If the first item is a string, compare it with result.san
-      if (typeof moves[j] === 'string') {
-        foundMatch = moves[j] === result.san;
+      //if (typeof moves[j] === 'string') {
+        foundMatch = moves[j].after === result.after;
+        console.log(foundMatch);
         j++;
-      }
+      //}
 
       // If first comparison was not a match, continue checking the next items (they are arrays)
       while(!foundMatch && j < moves.length && Array.isArray(moves[j])) {
@@ -68,11 +57,11 @@ export default function Analysis() {
       }
 
       if (!foundMatch && variation.length == 0) {
-        setVariation([...variation, result.san])  //this line only executes if no match is found
+        setVariation([...variation, result])  //this line only executes if no match is found
         setcurrentMoveIndex(prev => [...prev, 1])
       }
       else if (!foundMatch && currentMoveIndex[currentMoveIndex.length - 1] == variation.length) {
-        setVariation([...variation, result.san])
+        setVariation([...variation, result])
         setcurrentMoveIndex(prev => {
           let newState = [...prev];
           newState[newState.length - 1] = newState[newState.length - 1] + 1
@@ -82,68 +71,22 @@ export default function Analysis() {
       else{
         console.log("length of moves " + moves.length);
       }
-      
-      //
-
     }
 
     else if (currentMoveIndex.length > 1) {
       if(currentMoveIndex[currentMoveIndex.length - 1] < variation.length){
-        setVariation(prev => [...prev, [result.san]])
+        setVariation(prev => [...prev, [result]])
       }
     }
 
     else{
-      setMoves([...moves, result.san])
+      setMoves([...moves, result])
       setcurrentMoveIndex(prev => {
         let newState = [...prev];
         newState[newState.length - 1] = newState[newState.length - 1] + 1
         return newState;
       })
     }
-
-    // if(pgnData.moves[line.length] == undefined){  //building pgn with variations
-    //   setPgnData(prev => ({
-    //     ...prev, 
-    //     moves: [...prev.moves, result.san]
-    //   }));
-    // }
-    // else{
-    //   setPgnData(prev => ({
-    //     ...prev, 
-    //     moves: [...prev.moves, [result.san]]
-    //   }));
-    // }
-
-    // console.log(currentIndex);
-    // console.log(history.length);
-    // if (currentIndex < history.length - 1) {  //------------------------------------
-    //   setHistory((prevHistory) => [
-    //     ...prevHistory.slice(0, currentIndex + 1),
-    //     { move, variations: [] },
-    //   ]);
-    // } else {
-    //   setHistory((prevHistory) => [...prevHistory, { move, variations: [] }]);
-    // }
-    // setCurrentIndex((prevIndex) => prevIndex + 1);  //------------------------------------
-
-    // if (currentIndex > history.length - 1) {
-    //   console.log("create variant");
-    //   setHistory((prevHistory) => {
-    //     const newHistory = [...prevHistory]
-    //     newHistory[currentIndex].variations.push({ move })
-    //     return newHistory
-    //   });
-    // }
-    //console.log(moves);
-
-    // const lastMovePair = moves[moves.length - 1];
-    // if (!lastMovePair || lastMovePair.length === 2) {
-      
-    //   setMoves([...moves, [result.san]]);
-    // } else {
-    //   setMoves([...moves.slice(0, -1), [...lastMovePair, result.san]]);
-    // } 
 
     setFen(game.fen());   //Triggers render with new position
     setUndoneMoves([]);   //Reset undone moves when a new move is made
@@ -158,7 +101,7 @@ export default function Analysis() {
       setLine(line.slice(0, line.length - 1));
       setUndoneMoves([move, ...undoneMoves]);
 
-      if(variation.length > 0 && currentMoveIndex[currentMoveIndex.length -1] == 1){
+      if(variation.length > 0 && currentMoveIndex[currentMoveIndex.length -1] == 1){  //it means zero before state is updated from 1 to 0
         const newMoves = moves
         newMoves.splice(currentMoveIndex[0]+1, 0, variation)
         setMoves(newMoves)
@@ -178,13 +121,6 @@ export default function Analysis() {
         })
       }
     }
-
-      // const lastMovePair = moves[moves.length - 1];
-      // if (lastMovePair.length === 2) {
-      //   setMoves([...moves.slice(0, -1), [lastMovePair[0]]]); //delete last pair and add one remembered move to it
-      // } else {
-      //   setMoves([...moves.slice(0, -1)]);
-      // }
   };
 
   const moveForward = () => {
@@ -196,13 +132,6 @@ export default function Analysis() {
         "move" : move.san,
         "moveVer" : move,
         "position" : fen}]);
-
-      // const lastMovePair = moves[moves.length - 1];
-      // if (!lastMovePair || lastMovePair.length === 2) {
-      //   setMoves([...moves, [move.san]]);
-      // } else {
-      //   setMoves([...moves.slice(0, -1), [...lastMovePair, move.san]]);
-      // }
 
       setUndoneMoves(remainingUndoneMoves);
     }
@@ -241,8 +170,6 @@ export default function Analysis() {
       commentID: loadedCommentID || ""
     });
 
-    //console.log(moves);
-    //console.log(line.length);
   }
 
   function resetPosition(){
@@ -427,5 +354,80 @@ export default function Analysis() {
 
 
 
+      // const lastMovePair = moves[moves.length - 1];
+      // if (lastMovePair.length === 2) {
+      //   setMoves([...moves.slice(0, -1), [lastMovePair[0]]]); //delete last pair and add one remembered move to it
+      // } else {
+      //   setMoves([...moves.slice(0, -1)]);
+      // }
+
+      // const lastMovePair = moves[moves.length - 1];
+      // if (!lastMovePair || lastMovePair.length === 2) {
+      //   setMoves([...moves, [move.san]]);
+      // } else {
+      //   setMoves([...moves.slice(0, -1), [...lastMovePair, move.san]]);
+      // }
+
 
 //const lastItem = Object.values(line).pop() //last object of the array
+
+
+
+    // if(pgnData.moves[line.length] == undefined){  //building pgn with variations
+    //   setPgnData(prev => ({
+    //     ...prev, 
+    //     moves: [...prev.moves, result.san]
+    //   }));
+    // }
+    // else{
+    //   setPgnData(prev => ({
+    //     ...prev, 
+    //     moves: [...prev.moves, [result.san]]
+    //   }));
+    // }
+
+    // console.log(currentIndex);
+    // console.log(history.length);
+    // if (currentIndex < history.length - 1) {  //------------------------------------
+    //   setHistory((prevHistory) => [
+    //     ...prevHistory.slice(0, currentIndex + 1),
+    //     { move, variations: [] },
+    //   ]);
+    // } else {
+    //   setHistory((prevHistory) => [...prevHistory, { move, variations: [] }]);
+    // }
+    // setCurrentIndex((prevIndex) => prevIndex + 1);  //------------------------------------
+
+    // if (currentIndex > history.length - 1) {
+    //   console.log("create variant");
+    //   setHistory((prevHistory) => {
+    //     const newHistory = [...prevHistory]
+    //     newHistory[currentIndex].variations.push({ move })
+    //     return newHistory
+    //   });
+    // }
+    //console.log(moves);
+
+    // const lastMovePair = moves[moves.length - 1];
+    // if (!lastMovePair || lastMovePair.length === 2) {
+      
+    //   setMoves([...moves, [result.san]]);
+    // } else {
+    //   setMoves([...moves.slice(0, -1), [...lastMovePair, result.san]]);
+    // } 
+
+
+
+  //const [history, setHistory] = useState([]);
+  //const [currentIndex, setCurrentIndex] = useState(-1);
+
+  // const [pgnData, setPgnData] = useState({
+  //   event: "",
+  //   site: "",
+  //   date: "",
+  //   round: "",
+  //   white: "",
+  //   black: "",
+  //   result: "*",
+  //   moves: []
+  // });
