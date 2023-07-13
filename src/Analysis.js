@@ -3,14 +3,13 @@ import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import axios from "axios";
 import CommentBox from "./CommentBox";
+import { treeNode } from "./treeNode";
 
 export default function Analysis() {
   const [game] = useState(new Chess()); //main representation of the board
   const [orientation, setOrientation] = useState("white")
   const [fen, setFen] = useState(game.fen()); //fen of current position, setFen triggers board refresh
   const [line, setLine] = useState([]);   //moves made on the chessboard, used for saving to database
-  const [moves, setMoves] = useState([])  //just for pair move notation
-  const [currentMoveIndex, setcurrentMoveIndex] = useState([0])
   const [undoneMoves, setUndoneMoves] = useState([]);   //moves taken back - saved to have possibility to click next and recall them 
   const [loadedMoves, setloadedMoves] = useState([]);     //moves downloaded from database
   const [hashTableMoves, sethashTableMoves] = useState([])  //stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
@@ -18,7 +17,9 @@ export default function Analysis() {
   const [moveFrom, setMoveFrom] = useState("");   //sets current clicked square (if legal move is possible from that square)
   const [hashComments, sethashComments] = useState({});
   const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""});
-  const [variation, setVariation] = useState([])
+
+  const [moveTree, setmoveTree] = useState(null)
+  const [currentNode, setcurrentNode] = useState(null)
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
@@ -33,60 +34,12 @@ export default function Analysis() {
       "move" : result.san,
       "moveVer" : move,
       "position" : fen}]);
+
+    const newNode = new treeNode(result)  //create new node
+    currentNode.addChild(newNode)         //sets new node as children of the previous one
+    setcurrentNode(newNode)               //sets current as the one just created
     
-    if((moves.length > currentMoveIndex[0] && variation.length == 0) || variation.length > 0){
-
-      let foundMatch = false
-      let j = currentMoveIndex[currentMoveIndex.length-1]
-
-      console.log(result);
-
-      // If the first item is a string, compare it with result.san
-      //if (typeof moves[j] === 'string') {
-        foundMatch = moves[j].after === result.after;
-        console.log(foundMatch);
-        j++;
-      //}
-
-      // If first comparison was not a match, continue checking the next items (they are arrays)
-      while(!foundMatch && j < moves.length && Array.isArray(moves[j])) {
-        if(moves[j].length > 0 && moves[j][0] === result.san) {
-            foundMatch = true;
-        }
-        j++;
-      }
-
-      if (!foundMatch && variation.length == 0) {
-        setVariation([...variation, result])  //this line only executes if no match is found
-        setcurrentMoveIndex(prev => [...prev, 1])
-      }
-      else if (!foundMatch && currentMoveIndex[currentMoveIndex.length - 1] == variation.length) {
-        setVariation([...variation, result])
-        setcurrentMoveIndex(prev => {
-          let newState = [...prev];
-          newState[newState.length - 1] = newState[newState.length - 1] + 1
-          return newState;
-        })
-      }
-      else{
-        console.log("length of moves " + moves.length);
-      }
-    }
-
-    else if (currentMoveIndex.length > 1) {
-      if(currentMoveIndex[currentMoveIndex.length - 1] < variation.length){
-        setVariation(prev => [...prev, [result]])
-      }
-    }
-
-    else{
-      setMoves([...moves, result])
-      setcurrentMoveIndex(prev => {
-        let newState = [...prev];
-        newState[newState.length - 1] = newState[newState.length - 1] + 1
-        return newState;
-      })
-    }
+    console.log(moveTree);
 
     setFen(game.fen());   //Triggers render with new position
     setUndoneMoves([]);   //Reset undone moves when a new move is made
@@ -100,26 +53,6 @@ export default function Analysis() {
       setFen(game.fen());
       setLine(line.slice(0, line.length - 1));
       setUndoneMoves([move, ...undoneMoves]);
-
-      if(variation.length > 0 && currentMoveIndex[currentMoveIndex.length -1] == 1){  //it means zero before state is updated from 1 to 0
-        const newMoves = moves
-        newMoves.splice(currentMoveIndex[0]+1, 0, variation)
-        setMoves(newMoves)
-        setVariation([])
-        setcurrentMoveIndex(prev => {
-          let newState = [...prev]
-          newState.splice(-1,1)
-          return newState
-        })
-      }
-
-      else {
-        setcurrentMoveIndex(prev => {
-          let newState = [...prev]
-          newState[newState.length - 1] = newState[newState.length - 1] - 1
-          return newState
-        })
-      }
     }
   };
 
@@ -176,7 +109,6 @@ export default function Analysis() {
     game.reset()
     setFen(game.fen());  //Triggers render with new position
     setLine([]);
-    setMoves([])
     setUndoneMoves([]); 
   }
 
@@ -283,10 +215,15 @@ export default function Analysis() {
 
   useEffect(() => {
     //console.log("rendered");
+
+    if(moveTree == null){
+      const rootNode = new treeNode('root')
+      setmoveTree(rootNode)
+      setcurrentNode(rootNode)
+    }
+
     checkGame()
   }, [fen, hashTableMoves, hashComments])
-
-
 
   return (
     <div className="mainDiv">
