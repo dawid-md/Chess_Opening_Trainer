@@ -35,23 +35,38 @@ export default function Analysis() {
       "moveVer" : move,
       "position" : fen}]);
 
-    const newNode = new treeNode(result)  //create new node
-    currentNode.addChild(newNode)         //sets new node as children of the previous one
-    setcurrentNode(newNode)               //sets current as the one just created
-    
+    let childFound = false
+    for(const child of currentNode.children){
+      if(child.move == result.san){
+        console.log(child);
+        setcurrentNode(child)
+        childFound = true
+        break
+      }
+    }
+
+    if(!childFound){
+      const newNode = new treeNode(result)  //create new node
+      currentNode.addChild(newNode)         //sets new node as children of the previous one
+      setcurrentNode(newNode)               //sets current as the one just created
+    }
+
     console.log(moveTree);
 
     setFen(game.fen());   //Triggers render with new position
     setUndoneMoves([]);   //Reset undone moves when a new move is made
     setOptionSquares([])
     return result;
-}
+  }
 
   const moveBack = () => {
     const move = game.undo();
     if(move) {
       setFen(game.fen());
       setLine(line.slice(0, line.length - 1));
+      if(currentNode.parent != null){
+        setcurrentNode(currentNode.parent)  //prevents error when stated on root
+      }
       setUndoneMoves([move, ...undoneMoves]);
     }
   };
