@@ -47,6 +47,8 @@ export default function Analysis() {
       setcurrentNode(newNode)               //sets current as the one just created
     }
 
+    console.log(moveTree);
+
     setFen(game.fen());   //Triggers render with new position
     setUndoneMoves([]);   //Reset undone moves when a new move is made
     setOptionSquares([])

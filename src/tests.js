@@ -1,5 +1,5 @@
 let pgnTree = {
-    move: "startPosition",
+    move: "startingPosition",
     children: [
       {
         move: "e4",
