@@ -27,18 +27,14 @@ export default function Analysis() {
         possibleMove.from === move.from && possibleMove.to === move.to
     );
     if (!isMovePossible) return null;
-    const result = game.move(move);   //it makes changes to main game object
+    const result = game.move(move);     //it makes changes to main game object
     if (result === null) return null;
 
-    setLine([...line, {   //triggered before setFen in order to have position saved before move is made (transposition required)
-      "move" : result.san,
-      "moveVer" : move,
-      "position" : fen}]);
+    updateLine(result, move)
 
     let childFound = false
     for(const child of currentNode.children){
       if(child.move == result.san){
-        console.log(child);
         setcurrentNode(child)
         childFound = true
         break
@@ -51,12 +47,17 @@ export default function Analysis() {
       setcurrentNode(newNode)               //sets current as the one just created
     }
 
-    console.log(moveTree);
-
     setFen(game.fen());   //Triggers render with new position
     setUndoneMoves([]);   //Reset undone moves when a new move is made
     setOptionSquares([])
     return result;
+  }
+
+  const updateLine = (result, move) => {
+    setLine([...line, {       //triggered before setFen in order to have position saved before move is made (transposition required)
+      "move" : result.san,
+      "moveVer" : move,
+      "position" : fen}]);
   }
 
   const moveBack = () => {
@@ -74,13 +75,9 @@ export default function Analysis() {
   const moveForward = () => {
     if (undoneMoves.length > 0) {
       const [move, ...remainingUndoneMoves] = undoneMoves;
-      game.move(move);
+      const result = game.move(move)
       setFen(game.fen());
-      setLine([...line, {   //triggered before setFen in order to have position saved before move is made (transposition required)
-        "move" : move.san,
-        "moveVer" : move,
-        "position" : fen}]);
-
+      updateLine(result, move)
       setUndoneMoves(remainingUndoneMoves);
     }
   };
@@ -132,7 +129,7 @@ export default function Analysis() {
     console.log(res.config.data);
   }
 
-  async function updateLine(){
+  async function updateLineBase(){
     const res = await axios.patch(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`, line)
     console.log(res.config.data);
   }
@@ -229,8 +226,6 @@ export default function Analysis() {
   }
 
   useEffect(() => {
-    //console.log("rendered");
-
     if(moveTree == null){
       const rootNode = new treeNode('root')
       setmoveTree(rootNode)
@@ -263,7 +258,7 @@ export default function Analysis() {
           <button className="btn btn-light btn-sm mx-1" onClick={moveBack}>Undo</button>
           <button className="btn btn-light btn-sm mx-1" onClick={moveForward}>Next</button>
           <button className="btn btn-light btn-sm mx-1" onClick={saveLine}>Save</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={updateLine}>Update</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={updateLineBase}>Update</button>
           <button className="btn btn-light btn-sm mx-1" onClick={loadLine}>Load</button>
           <button className="btn btn-light btn-sm mx-1" onClick={checkGame}>Check</button>
           <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}>Reset</button>
@@ -302,76 +297,6 @@ export default function Analysis() {
     </div>
   );
 }
-
-
-
-
-      // const lastMovePair = moves[moves.length - 1];
-      // if (lastMovePair.length === 2) {
-      //   setMoves([...moves.slice(0, -1), [lastMovePair[0]]]); //delete last pair and add one remembered move to it
-      // } else {
-      //   setMoves([...moves.slice(0, -1)]);
-      // }
-
-      // const lastMovePair = moves[moves.length - 1];
-      // if (!lastMovePair || lastMovePair.length === 2) {
-      //   setMoves([...moves, [move.san]]);
-      // } else {
-      //   setMoves([...moves.slice(0, -1), [...lastMovePair, move.san]]);
-      // }
-
-
-//const lastItem = Object.values(line).pop() //last object of the array
-
-
-
-    // if(pgnData.moves[line.length] == undefined){  //building pgn with variations
-    //   setPgnData(prev => ({
-    //     ...prev, 
-    //     moves: [...prev.moves, result.san]
-    //   }));
-    // }
-    // else{
-    //   setPgnData(prev => ({
-    //     ...prev, 
-    //     moves: [...prev.moves, [result.san]]
-    //   }));
-    // }
-
-    // console.log(currentIndex);
-    // console.log(history.length);
-    // if (currentIndex < history.length - 1) {  //------------------------------------
-    //   setHistory((prevHistory) => [
-    //     ...prevHistory.slice(0, currentIndex + 1),
-    //     { move, variations: [] },
-    //   ]);
-    // } else {
-    //   setHistory((prevHistory) => [...prevHistory, { move, variations: [] }]);
-    // }
-    // setCurrentIndex((prevIndex) => prevIndex + 1);  //------------------------------------
-
-    // if (currentIndex > history.length - 1) {
-    //   console.log("create variant");
-    //   setHistory((prevHistory) => {
-    //     const newHistory = [...prevHistory]
-    //     newHistory[currentIndex].variations.push({ move })
-    //     return newHistory
-    //   });
-    // }
-    //console.log(moves);
-
-    // const lastMovePair = moves[moves.length - 1];
-    // if (!lastMovePair || lastMovePair.length === 2) {
-      
-    //   setMoves([...moves, [result.san]]);
-    // } else {
-    //   setMoves([...moves.slice(0, -1), [...lastMovePair, result.san]]);
-    // } 
-
-
-
-  //const [history, setHistory] = useState([]);
-  //const [currentIndex, setCurrentIndex] = useState(-1);
 
   // const [pgnData, setPgnData] = useState({
   //   event: "",
