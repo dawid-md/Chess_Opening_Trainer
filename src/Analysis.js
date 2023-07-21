@@ -4,6 +4,7 @@ import { Chessboard } from "react-chessboard";
 import axios from "axios";
 import CommentBox from "./CommentBox";
 import { treeNode } from "./treeNode";
+import { treeToPGN } from "./treeNodePgn";
 
 export default function Analysis() {
   const [game] = useState(new Chess()); //main representation of the board
@@ -48,6 +49,7 @@ export default function Analysis() {
     }
 
     console.log(moveTree);
+    console.log(treeToPGN(moveTree))
 
     setFen(game.fen());   //Triggers render with new position
     setUndoneMoves([]);   //Reset undone moves when a new move is made
