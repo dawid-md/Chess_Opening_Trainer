@@ -1,51 +1,38 @@
-export function treeToPGN(node) {
-    if (!node.move) {
-        return handleMainLine(node.children[0], 1, true);
-    } else {
-        return '';
-    }
-}
+export function treeToPGN(node, inBrackets = false, movePair = 1.0, dots = "") {
+    if (!node || !node.children) return "";
 
-function handleMainLine(node, moveNumber, isWhiteTurn) {
-    if (!node) return '';
+    let result = "";
 
-    let pgn = '';
+    for (let i = 0; i < node.children.length; i++) {
+        const child = node.children[i];
 
-    if (isWhiteTurn) {
-        pgn += `${moveNumber}. ${node.move} `;
-    } else {
-        pgn += `${moveNumber}... ${node.move} `;
-    }
-
-    if (node.children.length > 1) {
-        let variations = [];
-        for (let i = 1; i < node.children.length; i++) {
-            variations.push(handleVariation(node.children[i], moveNumber, !isWhiteTurn));
+        if (i === 0 || inBrackets) {
+            if(!Number.isInteger(movePair) && dots == ".."){
+                result += Math.floor(movePair) + "." + dots
+            } 
+            else if(Number.isInteger(movePair) && dots == ""){
+                 result += Math.floor(movePair) + "." + dots
+            }
+            result += " "
+            movePair += 0.5
+            result += `${child.move} `;
+        } else {
+            movePair -= 0.5
+            dots = Number.isInteger(movePair) ? "" : ".."
+            result += `(${Math.floor(movePair) + "." + dots + " " + child.move}`;
+            movePair += 0.5
+            const childResult = treeToPGN(child, true, movePair);
+            result += childResult ? ` ${childResult}) ` : ') ';
+            inBrackets = true
         }
-        pgn += variations.join(' ') + ' ';
-    }
-    
-    if (node.children.length > 0) {
-        pgn += handleMainLine(node.children[0], isWhiteTurn ? moveNumber : moveNumber + 1, !isWhiteTurn);
     }
 
-    return pgn.trim();
+    if (node.children.length > 0) {             // Recurse into the first child's descendants
+        dots = inBrackets && !Number.isInteger(movePair) ? ".." : ""
+        result += treeToPGN(node.children[0], false, movePair, dots);
+    }
+
+    return result.trim();
 }
 
-function handleVariation(node, moveNumber, isWhiteTurn) {
-    let pgn = '';
-
-    if (isWhiteTurn) {
-        pgn += `(${moveNumber}. ${node.move} `;
-    } else {
-        pgn += `(${moveNumber}... ${node.move} `;
-    }
-    
-    if (node.children.length > 0) {
-        pgn += handleMainLine(node.children[0], isWhiteTurn ? moveNumber : moveNumber + 1, !isWhiteTurn) + ' ';
-    }
-    
-    pgn += ')';
-    return pgn.trim();
-}
 

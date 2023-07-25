@@ -48,7 +48,7 @@ export default function Analysis() {
       setcurrentNode(newNode)               //sets current as the one just created
     }
 
-    console.log(moveTree);
+    //console.log(moveTree);
     console.log(treeToPGN(moveTree))
 
     setFen(game.fen());   //Triggers render with new position
