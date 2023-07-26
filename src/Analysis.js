@@ -21,6 +21,7 @@ export default function Analysis() {
 
   const [moveTree, setmoveTree] = useState(null)
   const [currentNode, setcurrentNode] = useState(null)
+  const [pgnView, setpgnView] = useState("")
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
@@ -49,7 +50,8 @@ export default function Analysis() {
     }
 
     //console.log(moveTree);
-    console.log(treeToPGN(moveTree))
+    //console.log(treeToPGN(moveTree))
+    setpgnView(treeToPGN(moveTree))
 
     setFen(game.fen());   //Triggers render with new position
     setUndoneMoves([]);   //Reset undone moves when a new move is made
@@ -275,14 +277,8 @@ export default function Analysis() {
       
       <div className="rightpanel">
 
-        <div className="moveMades mx-2 px-1">
-          <ul className="text-white list-unstyled">
-            {/* {moves.map((movePair, index) => (
-              <li key={index}>
-                {index + 1}. {movePair.join(', ')}
-              </li>
-            ))} */}
-          </ul>
+        <div className="moveMades mx-2 px-1 text-white">
+          <p>{pgnView}</p>
         </div>
 
         <div className="commentsDiv mx-2 my-2">

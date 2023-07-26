@@ -25,10 +25,10 @@ function treeToPGN(node, inBrackets = false, movePair = 1.0, dots = "") {
         const child = node.children[i];
 
         if (i === 0) {
-            if(!Number.isInteger(movePair) && dots == ".."){
+            if(!Number.isInteger(movePair) && dots === ".."){
                 result += Math.floor(movePair) + "." + dots
             } 
-            else if(Number.isInteger(movePair) && dots == ""){
+            else if(Number.isInteger(movePair) && dots === ""){
                 result += Math.floor(movePair) + "." + dots
             }
             //result += movePair + "." + dots
@@ -43,18 +43,18 @@ function treeToPGN(node, inBrackets = false, movePair = 1.0, dots = "") {
             movePair += 0.5
             const childResult = treeToPGN(child, true, movePair);
             result += childResult ? ` ${childResult}) ` : ') ';
-            inBrackets = true
+            inBrackets = true   //here it only sets a flag that bracket has been closed and if next move is black then it should add dots 
         }
     }
 
     if (node.children.length > 0) {             // Recurse into the first child's descendants
-        console.log(result[result.length-2]);
         dots = inBrackets && !Number.isInteger(movePair) && result[result.length-2] === ")" ? ".." : ""
         result += treeToPGN(node.children[0], false, movePair, dots);
     }
 
     return result.trim();
 }
+
 
     let root = new treeNode('root');
     let nf3 = new treeNode({ san: 'Nf3' }, root);
@@ -107,50 +107,6 @@ console.log(treeToPGN(root));
 
 
 
-
-// function treeToPGN(node, depth = -1) {
-//   let pgn = '';
-
-//   if (depth % 2 === 0) {
-//       const moveNumber = Math.floor(depth / 2) + 1;
-//       pgn += `${moveNumber}. `;
-//     }
-
-//   if (node.move) {
-//       pgn += node.move + ' ';
-//       //console.log(node.move);
-//   }
-
-//   //console.log(node.children);
-
-//   node.children.forEach(child => {
-//     console.log(child.move)
-//     if(node.children.length > 1){
-//       console.log(node.children[1].move)
-//       treeToPGN(node.children[1])
-//     }
-//     treeToPGN(child, depth+1)
-//   })
-
-//   //console.log(node.children);
-
-//   // if (node.children.length > 0) {
-//   //   if (node.children.length == 1) {
-//   //     let line = treeToPGN(node.children[0], depth + 1);
-//   //     pgn += line;
-//   //   } else if (node.children.length > 1) {
-//   //     let variations = node.children.slice(1).map(child => `(${treeToPGN(child, depth + 1)})`).join(' ');
-//   //     pgn += ' ' + variations;
-//   //   }
-//   // } 
-
-//   //return pgn.trim();
-// }
-
-
-
-
-
 // let pgnTree = {
 //     move: "startingPosition",
 //     children: [
@@ -178,4 +134,46 @@ console.log(treeToPGN(root));
 //         ]
 //       }
 //     ]
+// }
+
+
+//the best version so far
+// function treeToPGN(node, inBrackets = false, movePair = 1.0, dots = "") {
+//     if (!node || !node.children) return "";
+
+//     let result = "";
+
+//     for (let i = 0; i < node.children.length; i++) {
+//         const child = node.children[i];
+
+//         if (i === 0) {
+//             if(!Number.isInteger(movePair) && dots == ".."){
+//                 result += Math.floor(movePair) + "." + dots
+//             } 
+//             else if(Number.isInteger(movePair) && dots == ""){
+//                 result += Math.floor(movePair) + "." + dots
+//             }
+//             //result += movePair + "." + dots
+//             result += " "
+//             movePair += 0.5
+//             result += `${child.move} `;
+//         } else {
+//             movePair -= 0.5
+//             dots = Number.isInteger(movePair) ? "" : ".."
+//             result += `(${Math.floor(movePair) + "." + dots + " " + child.move}`;
+//             //result += `(${movePair + "." + dots + " " + child.move}`;
+//             movePair += 0.5
+//             const childResult = treeToPGN(child, true, movePair);
+//             result += childResult ? ` ${childResult}) ` : ') ';
+//             inBrackets = true
+//         }
+//     }
+
+//     if (node.children.length > 0) {             // Recurse into the first child's descendants
+//         console.log(result[result.length-2]);
+//         dots = inBrackets && !Number.isInteger(movePair) && result[result.length-2] === ")" ? ".." : ""
+//         result += treeToPGN(node.children[0], false, movePair, dots);
+//     }
+
+//     return result.trim();
 // }
