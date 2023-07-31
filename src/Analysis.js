@@ -5,6 +5,7 @@ import axios from "axios";
 import CommentBox from "./CommentBox";
 import { treeNode } from "./treeNode";
 import { treeToPGN } from "./treeNodePgn";
+import { treeToJSON } from "./treeToJSON";
 import useSound from "use-sound";
 import moveSound from "./sounds/Move.mp3"
 import captureSound from "./sounds/Capture.mp3"
@@ -24,7 +25,8 @@ export default function Analysis() {
 
   const [moveTree, setmoveTree] = useState(null)
   const [currentNode, setcurrentNode] = useState(null)
-  const [pgnView, setpgnView] = useState("")
+  const [pgnView, setpgnView] = useState("")  //string displayed inside pgn box
+  const [jsonTreeState, setjsonTreeState] = useState("")
 
   const [playMoveSound] = useSound(moveSound)
   const [playCaptureSound] = useSound(captureSound)
@@ -139,6 +141,38 @@ export default function Analysis() {
     setFen(game.fen());  //Triggers render with new position
     setLine([]);
     setUndoneMoves([]); 
+  }
+
+  const treeJSON = async () => {        //upload tree json to database
+    const result = treeToJSON(moveTree)
+    setjsonTreeState(result)
+
+    const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/WhiteX.json`, result)
+    console.log(result);
+  }
+
+  async function treeJSONdownload(){
+    const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/WhiteX.json`);
+    const rootNode = Object.keys(res.data)[0]
+    let tree = jsonToTree(res.data[rootNode])
+    setmoveTree(tree)
+    setpgnView(treeToPGN(tree))
+  }
+
+  function jsonToTree(jsonObject, parent = null) {  //convert downloaded json back to tree
+    const node = new treeNode(jsonObject.move ? {
+        san: jsonObject.move,
+        after: jsonObject.fen
+    } : 'root', parent);
+
+    console.log(node);
+
+    jsonObject.children?.forEach(child => {
+        const childNode = jsonToTree(child, node);
+        node.addChild(childNode);
+    });
+
+    return node;
   }
 
   async function saveLine(){
@@ -283,6 +317,8 @@ export default function Analysis() {
             if(orientation === "white"){setOrientation("black")}
             else{setOrientation("white")}
           }}>Flip Board</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={treeJSON}>JSON</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={treeJSONdownload}>loadJSON</button>
         </div>
       </div>
       
