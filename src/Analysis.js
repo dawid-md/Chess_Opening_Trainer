@@ -5,6 +5,9 @@ import axios from "axios";
 import CommentBox from "./CommentBox";
 import { treeNode } from "./treeNode";
 import { treeToPGN } from "./treeNodePgn";
+import useSound from "use-sound";
+import moveSound from "./sounds/Move.mp3"
+import captureSound from "./sounds/Capture.mp3"
 
 export default function Analysis() {
   const [game] = useState(new Chess()); //main representation of the board
@@ -23,6 +26,9 @@ export default function Analysis() {
   const [currentNode, setcurrentNode] = useState(null)
   const [pgnView, setpgnView] = useState("")
 
+  const [playMoveSound] = useSound(moveSound)
+  const [playCaptureSound] = useSound(captureSound)
+
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
     const isMovePossible = possibleMoves.some(possibleMove => 
@@ -31,6 +37,11 @@ export default function Analysis() {
     if (!isMovePossible) return null;
     const result = game.move(move);     //it makes changes to main game object
     if (result === null) return null;
+
+    if(result.san.includes('x')){   //playing sounds on moves
+      playCaptureSound()
+    } else{
+        playMoveSound()}
 
     updateLine(result, move)
 
