@@ -3,11 +3,9 @@ export function treeToJSON(node) {
         move: node.move,
         fen: node.fen,
         children: []
-    };
-
+    }
     node.children.forEach(child => {
-        jsonNode.children.push(treeToJSON(child));
-    });
-
+        jsonNode.children.push(treeToJSON(child))
+    })
     return jsonNode;
 }

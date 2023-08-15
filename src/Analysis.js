@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import axios from "axios";
@@ -14,8 +14,6 @@ export default function Analysis() {
   const [game] = useState(new Chess()); //main representation of the board
   const [orientation, setOrientation] = useState("white")
   const [fen, setFen] = useState(game.fen()); //fen of current position, setFen triggers board refresh
-  const [line, setLine] = useState([]);   //moves made on the chessboard, used for saving to database
-  const [undoneMoves, setUndoneMoves] = useState([]);   //moves taken back - saved to have possibility to click next and recall them 
   const [loadedMoves, setloadedMoves] = useState([]);     //moves downloaded from database
   const [hashTableMoves, sethashTableMoves] = useState([])  //stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
   const [optionSquares, setOptionSquares] = useState({}); //available moves for current piece clicked
@@ -26,26 +24,22 @@ export default function Analysis() {
   const [moveTree, setmoveTree] = useState(null)
   const [currentNode, setcurrentNode] = useState(null)
   const [pgnView, setpgnView] = useState("")  //string displayed inside pgn box
-  const [jsonTreeState, setjsonTreeState] = useState("")
 
   const [playMoveSound] = useSound(moveSound)
   const [playCaptureSound] = useSound(captureSound)
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
-    const isMovePossible = possibleMoves.some(possibleMove => 
-        possibleMove.from === move.from && possibleMove.to === move.to
-    );
+    const isMovePossible = possibleMoves.some(possibleMove => possibleMove.from === move.from && possibleMove.to === move.to)
     if (!isMovePossible) return null;
-    const result = game.move(move);     //it makes changes to main game object
+
+    const result = game.move(move);     //makes changes to main game object
     if (result === null) return null;
 
     if(result.san.includes('x')){   //playing sounds on moves
       playCaptureSound()
     } else{
         playMoveSound()}
-
-    updateLine(result, move)
 
     let childFound = false
     for(const child of currentNode.children){
@@ -55,49 +49,33 @@ export default function Analysis() {
         break
       }
     }
-
     if(!childFound){
       const newNode = new treeNode(result)  //create new node
       currentNode.addChild(newNode)         //sets new node as children of the previous one
       setcurrentNode(newNode)               //sets current as the one just created
     }
 
-    //console.log(moveTree);
-    //console.log(treeToPGN(moveTree))
     setpgnView(treeToPGN(moveTree))
-
     setFen(game.fen());   //Triggers render with new position
-    setUndoneMoves([]);   //Reset undone moves when a new move is made
-    setOptionSquares([])
-    return result;
-  }
-
-  const updateLine = (result, move) => {
-    setLine([...line, {       //triggered before setFen in order to have position saved before move is made (transposition required)
-      "move" : result.san,
-      "moveVer" : move,
-      "position" : fen}]);
+    setOptionSquares([])  //possible move for selected piece
+    return result;        
   }
 
   const moveBack = () => {
-    const move = game.undo();
+    const move = game.undo()
     if(move) {
-      setFen(game.fen());
-      setLine(line.slice(0, line.length - 1));
+      setFen(game.fen())
       if(currentNode.parent != null){
         setcurrentNode(currentNode.parent)  //prevents error when stated on root
       }
-      setUndoneMoves([move, ...undoneMoves]);
     }
   };
 
   const moveForward = () => {
-    if (undoneMoves.length > 0) {
-      const [move, ...remainingUndoneMoves] = undoneMoves;
-      const result = game.move(move)
+    if(currentNode.children.length > 0){
+      game.move(currentNode.children[0].move) //first child is always the main line
       setFen(game.fen());
-      updateLine(result, move)
-      setUndoneMoves(remainingUndoneMoves);
+      setcurrentNode(currentNode.children[0]) //there is no need to update main tree
     }
   };
 
@@ -133,29 +111,30 @@ export default function Analysis() {
       comment: loadedComment || "",
       commentID: loadedCommentID || ""
     });
-
   }
 
   function resetPosition(){
     game.reset()
     setFen(game.fen());  //Triggers render with new position
-    setLine([]);
-    setUndoneMoves([]); 
+    const newTreeNode = new treeNode('root')
+    setmoveTree(newTreeNode)
+    setcurrentNode(newTreeNode)
+    setpgnView("")
   }
 
   const treeJSON = async () => {        //upload tree json to database
     const result = treeToJSON(moveTree)
-    setjsonTreeState(result)
-
-    const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/WhiteX.json`, result)
-    console.log(result);
+    const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`, result)
   }
 
   async function treeJSONdownload(){
-    const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/WhiteX.json`);
+    const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`);
     const rootNode = Object.keys(res.data)[0]
     let tree = jsonToTree(res.data[rootNode])
+    game.reset()          //resets game to the starting position
+    setFen(game.fen());  //Triggers render with new position
     setmoveTree(tree)
+    setcurrentNode(tree)
     setpgnView(treeToPGN(tree))
   }
 
@@ -165,7 +144,7 @@ export default function Analysis() {
         after: jsonObject.fen
     } : 'root', parent);
 
-    console.log(node);
+    //console.log(node);
 
     jsonObject.children?.forEach(child => {
         const childNode = jsonToTree(child, node);
@@ -175,22 +154,12 @@ export default function Analysis() {
     return node;
   }
 
-  async function saveLine(){
-    const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`, line)
-    console.log(res.config.data);
-  }
-
-  async function updateLineBase(){
-    const res = await axios.patch(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`, line)
-    console.log(res.config.data);
-  }
-
   async function saveComment(){
     if(comment != ""){
       const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments.json`, comment)
       console.log("comment saved");
     } 
-    else{
+    else{ //update comment
       const res = await axios.patch(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments/${comment.commentID}.json`, {"comment" : comment.comment})
       console.log("comment updated");
     }
@@ -279,6 +248,7 @@ export default function Analysis() {
   useEffect(() => {
     if(moveTree == null){
       const rootNode = new treeNode('root')
+      //console.log(rootNode);
       setmoveTree(rootNode)
       setcurrentNode(rootNode)
     }
@@ -308,17 +278,17 @@ export default function Analysis() {
         <div className="buttons">
           <button className="btn btn-light btn-sm mx-1" onClick={moveBack}>Undo</button>
           <button className="btn btn-light btn-sm mx-1" onClick={moveForward}>Next</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={saveLine}>Save</button>
+          {/* <button className="btn btn-light btn-sm mx-1" onClick={saveLine}>Save</button>
           <button className="btn btn-light btn-sm mx-1" onClick={updateLineBase}>Update</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={loadLine}>Load</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={loadLine}>Load</button> */}
           <button className="btn btn-light btn-sm mx-1" onClick={checkGame}>Check</button>
           <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}>Reset</button>
           <button className="btn btn-light btn-sm mx-1" onClick={() => {
             if(orientation === "white"){setOrientation("black")}
             else{setOrientation("white")}
           }}>Flip Board</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={treeJSON}>JSON</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={treeJSONdownload}>loadJSON</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={treeJSON}>Save</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={treeJSONdownload}>Load</button>
         </div>
       </div>
       
@@ -336,7 +306,6 @@ export default function Analysis() {
           <button className="btn btn-light btn-sm mx-2" onClick={saveComment}>Save</button>
           <button className="btn btn-light btn-sm" onClick={loadComment}>Load</button>
           <button className="btn btn-light btn-sm mx-2" onClick={deleteComment}>Delete</button>
-          {/* <button className="btn btn-light btn-sm mx-2" onClick={updateComment}>Update</button> */}
         </div>
 
       </div>
@@ -344,14 +313,3 @@ export default function Analysis() {
     </div>
   );
 }
-
-  // const [pgnData, setPgnData] = useState({
-  //   event: "",
-  //   site: "",
-  //   date: "",
-  //   round: "",
-  //   white: "",
-  //   black: "",
-  //   result: "*",
-  //   moves: []
-  // });
