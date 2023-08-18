@@ -122,12 +122,12 @@ export default function Analysis() {
     setpgnView("")
   }
 
-  const treeJSON = async () => {        //upload tree json to database
+  const saveTreeJSON = async () => {        //upload tree json to database
     const result = treeToJSON(moveTree)
     const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`, result)
   }
 
-  async function treeJSONdownload(){
+  async function downloadtreeJSON(){
     const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`);
     const rootNode = Object.keys(res.data)[0]
     let tree = jsonToTree(res.data[rootNode])
@@ -143,8 +143,6 @@ export default function Analysis() {
         san: jsonObject.move,
         after: jsonObject.fen
     } : 'root', parent);
-
-    //console.log(node);
 
     jsonObject.children?.forEach(child => {
         const childNode = jsonToTree(child, node);
@@ -259,9 +257,13 @@ export default function Analysis() {
   return (
     <div className="mainDiv">
 
-      <div className="leftPanel text-center mx-2 px-1">
-        <div className="loadedMoves"> 
+      <div className="leftPanel text-center">
+        <div className="loadedMoves mx-2 px-1"> 
           {loadedMoves.map(move => <p key={move} style={{color : "white"}}>{move[0]}</p>)}
+        </div>
+
+        <div className="openings mx-2 my-2">
+          {/* <CommentBox comment={comment} setComment={setComment} position={fen} /> */}
         </div>
       </div>
 
@@ -287,8 +289,8 @@ export default function Analysis() {
             if(orientation === "white"){setOrientation("black")}
             else{setOrientation("white")}
           }}>Flip Board</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={treeJSON}>Save</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={treeJSONdownload}>Load</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={saveTreeJSON}>Save</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={downloadtreeJSON}>Load</button>
         </div>
       </div>
       
