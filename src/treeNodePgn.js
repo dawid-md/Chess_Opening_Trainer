@@ -29,8 +29,7 @@ export function treeToPGN(node, inBrackets = false, movePair = 1.0, dots = "") {
         }
     }
 
-    if (node.children.length > 0) {             // Recurse into the first child's descendants
-        //console.log(result[result.length-2]);
+    if (node.children.length > 0) {      // Recurse into the first child's descendants
         dots = inBrackets && !Number.isInteger(movePair) && result[result.length-2] === ")" ? ".." : ""
         result += treeToPGN(node.children[0], false, movePair, dots);
     }
