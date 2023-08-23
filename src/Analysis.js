@@ -21,6 +21,7 @@ export default function Analysis() {
   const [hashComments, sethashComments] = useState({})
   const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""})
   const [openings, setOpenings] = useState([])
+  const [openingName, setopeningName] = useState("")
 
   const [moveTree, setmoveTree] = useState(null)
   const [currentNode, setcurrentNode] = useState(null)
@@ -124,7 +125,11 @@ export default function Analysis() {
   }
 
   const saveTreeJSON = async () => {        //upload tree json to database
+    // const treeToSave = moveTree
+    // treeToSave.name = openingName
+    // console.log(treeToSave)
     const result = treeToJSON(moveTree)
+    result.name = openingName
     console.log(result);
     const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`, result)
   }
@@ -239,23 +244,6 @@ export default function Analysis() {
     }
   }
 
-  async function loadLine(){
-    const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`)
-    const hashMoves = {}  // all moves and positions without fifty-move rule = need for filtering based on the current position
-
-    for(const key in res.data){
-        for(let fenPos of res.data[key]){
-            const keyPos = fenPos.position.split(' ').slice(0, 4).join(' ')
-            if(!hashMoves[keyPos]){ 
-                hashMoves[keyPos] = [[fenPos.move, fenPos.moveVer, fenPos.comment]]
-            } else if (!hashMoves[keyPos].some(item => item[0] === fenPos.move)) { 
-                hashMoves[keyPos].push([fenPos.move, fenPos.moveVer]) // don't add duplicates 
-            }
-        }
-    }
-    sethashTableMoves(hashMoves)
-  }
-
   function getMoveOptions(square) {
     const moves = game.moves({
       square,
@@ -293,6 +281,11 @@ export default function Analysis() {
 
   function onPieceDragBegin(piece, sourceSquare){
     getMoveOptions(sourceSquare)
+  }
+
+  const changeopeningName = (event) => {
+    event.preventDefault()
+    setopeningName(event.target.value)
   }
 
   useEffect(() => {
@@ -334,15 +327,16 @@ export default function Analysis() {
           {/* <button className="btn btn-light btn-sm mx-1" onClick={saveLine}>Save</button>
           <button className="btn btn-light btn-sm mx-1" onClick={updateLineBase}>Update</button>
           <button className="btn btn-light btn-sm mx-1" onClick={loadLine}>Load</button> */}
-          <button className="btn btn-light btn-sm mx-1" onClick={checkGame}>Check</button>
+          {/* <button className="btn btn-light btn-sm mx-1" onClick={checkGame}>Check</button> */}
           <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}>Reset</button>
           <button className="btn btn-light btn-sm mx-1" onClick={() => {
             if(orientation === "white"){setOrientation("black")}
             else{setOrientation("white")}
           }}>Flip Board</button>
           <button className="btn btn-light btn-sm mx-1" onClick={saveTreeJSON}>Save</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={downloadtreeJSON}>Load</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={getOpenings}>Get Openings</button>
+          <button className="btn btn-light btn-sm mx-1" data-bs-toggle="modal" data-bs-target="#myModal">Save As</button>
+          {/* <button className="btn btn-light btn-sm mx-1" onClick={downloadtreeJSON}>Load</button> */}
+          <button className="btn btn-light btn-sm mx-1" onClick={getOpenings}>Openings</button>
         </div>
       </div>
       
@@ -364,6 +358,42 @@ export default function Analysis() {
 
       </div>
 
+      <div className="modal" id="myModal" tabIndex="-1">
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Opening Name</h5>
+              <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div className="modal-body">
+              <input type="text" onChange={changeopeningName} className="form-control" placeholder="Player Name"/>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="button" className="btn btn-primary" data-bs-dismiss="modal" onClick={saveTreeJSON}>Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   )
 }
+
+
+// async function loadLine(){
+//   const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`)
+//   const hashMoves = {}  // all moves and positions without fifty-move rule = need for filtering based on the current position
+
+//   for(const key in res.data){
+//       for(let fenPos of res.data[key]){
+//           const keyPos = fenPos.position.split(' ').slice(0, 4).join(' ')
+//           if(!hashMoves[keyPos]){ 
+//               hashMoves[keyPos] = [[fenPos.move, fenPos.moveVer, fenPos.comment]]
+//           } else if (!hashMoves[keyPos].some(item => item[0] === fenPos.move)) { 
+//               hashMoves[keyPos].push([fenPos.move, fenPos.moveVer]) // don't add duplicates 
+//           }
+//       }
+//   }
+//   sethashTableMoves(hashMoves)
+// }
