@@ -124,25 +124,11 @@ export default function Analysis() {
     setpgnView("")
   }
 
-  const saveTreeJSON = async () => {        //upload tree json to database
-    // const treeToSave = moveTree
-    // treeToSave.name = openingName
-    // console.log(treeToSave)
+  const saveTreeJSON = async () => {      //upload tree json to database
     const result = treeToJSON(moveTree)
     result.name = openingName
-    console.log(result);
     const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`, result)
-  }
-
-  async function downloadtreeJSON(){
-    const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`)
-    const rootNode = Object.keys(res.data)[0]
-    let tree = jsonToTree(res.data[rootNode])
-    game.reset()          //resets game to the starting position
-    setFen(game.fen())  //Triggers render with new position
-    setmoveTree(tree)
-    setcurrentNode(tree)
-    setpgnView(treeToPGN(tree))
+    setopeningName("")
   }
 
   async function getOpenings(){
@@ -166,20 +152,6 @@ export default function Analysis() {
     setmoveTree(tree)
     setcurrentNode(tree)
     setpgnView(treeToPGN(tree))
-  }
-
-  function jsonToTreeOld(jsonObject, parent = null) {  //convert downloaded json back to tree
-    const node = new treeNode(jsonObject.move ? {
-        san: jsonObject.move,
-        after: jsonObject.fen
-    } : 'root', parent)
-
-    jsonObject.children?.forEach(child => {
-        const childNode = jsonToTree(child, node)
-        node.addChild(childNode)
-    })
-
-    return node
   }
 
   function jsonToTree(flatJson) {
@@ -396,4 +368,29 @@ export default function Analysis() {
 //       }
 //   }
 //   sethashTableMoves(hashMoves)
+// }
+
+// function jsonToTreeOld(jsonObject, parent = null) {  //convert downloaded json back to tree
+//   const node = new treeNode(jsonObject.move ? {
+//       san: jsonObject.move,
+//       after: jsonObject.fen
+//   } : 'root', parent)
+
+//   jsonObject.children?.forEach(child => {
+//       const childNode = jsonToTree(child, node)
+//       node.addChild(childNode)
+//   })
+
+//   return node
+// }
+
+// async function downloadtreeJSON(){
+//   const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`)
+//   const rootNode = Object.keys(res.data)[0]
+//   let tree = jsonToTree(res.data[rootNode])
+//   game.reset()          //resets game to the starting position
+//   setFen(game.fen())  //Triggers render with new position
+//   setmoveTree(tree)
+//   setcurrentNode(tree)
+//   setpgnView(treeToPGN(tree))
 // }

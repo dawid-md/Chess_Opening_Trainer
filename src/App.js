@@ -18,7 +18,7 @@ export default function App() {
     <h3 className="currentVariant text-center">{variant}</h3>
     <div className="home">
       <div className="boardDiv">
-        {variant === "random" ? <PlayRandomMoveEngine /> : null}
+        {variant === "Random" ? <PlayRandomMoveEngine /> : null}
         {variant === "Multiplayer" ? <Multiplayer /> : null}
         {variant === "Analysis" ? <Analysis /> : null}
         {variant === "stockfish" ? <PlayRandomMoveEngine /> : null}
