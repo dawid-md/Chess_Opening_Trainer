@@ -15,7 +15,7 @@ export default function Analysis() {
   const [orientation, setOrientation] = useState("white")
   const [fen, setFen] = useState(game.fen()) //fen of current position, setFen triggers board refresh
   const [loadedMoves, setloadedMoves] = useState([])    //moves downloaded from database
-  const [hashTableMoves, sethashTableMoves] = useState([])  //stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
+  const [hashTableMoves, sethashTableMoves] = useState([])  //?? stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
   const [optionSquares, setOptionSquares] = useState({}) //available moves for current piece clicked
   const [moveFrom, setMoveFrom] = useState("")   //sets current clicked square (if legal move is possible from that square)
   const [hashComments, sethashComments] = useState({})
@@ -146,7 +146,7 @@ export default function Analysis() {
 
   function selectOpening(id){
     const rootNode = openings.find(opening => opening.id === id)
-    let tree = jsonToTree(rootNode)
+    let tree = jsonToTree(rootNode)  //convert json to tree
     game.reset()          //resets game to the starting position
     setFen(game.fen())  //Triggers render with new position
     setmoveTree(tree)
@@ -276,6 +276,7 @@ export default function Analysis() {
       <div className="leftPanel text-white">
         <div className="loadedMoves mx-2 px-1"> 
           {loadedMoves.map(move => <p key={move} style={{color : "white"}}>{move[0]}</p>)}
+          {currentNode?.children?.map(elem => <p key={elem.move} style={{color : "white"}}>{elem.move}</p>)}
         </div>
 
         <div className="openings mx-2 my-2">
@@ -296,10 +297,6 @@ export default function Analysis() {
         <div className="buttons">
           <button className="btn btn-light btn-sm mx-1" onClick={moveBack}>Undo</button>
           <button className="btn btn-light btn-sm mx-1" onClick={moveForward}>Next</button>
-          {/* <button className="btn btn-light btn-sm mx-1" onClick={saveLine}>Save</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={updateLineBase}>Update</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={loadLine}>Load</button> */}
-          {/* <button className="btn btn-light btn-sm mx-1" onClick={checkGame}>Check</button> */}
           <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}>Reset</button>
           <button className="btn btn-light btn-sm mx-1" onClick={() => {
             if(orientation === "white"){setOrientation("black")}
