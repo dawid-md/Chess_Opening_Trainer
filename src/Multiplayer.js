@@ -36,8 +36,13 @@ export default function Multiplayer() {
   }
 
   return(
-  <div>
-    <Chessboard position={game.fen()} onPieceDrop={onDrop} />
+  <div className="mainDiv">
+    <div className="chessboardDiv w-75">
+      <Chessboard 
+        position={game.fen()} 
+        onPieceDrop={onDrop} 
+      />
+    </div>
   </div>
   )
 }
