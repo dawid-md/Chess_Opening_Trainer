@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
+import useSound from "use-sound"
+import moveSound from "./sounds/Move.mp3"
+import captureSound from "./sounds/Capture.mp3"
 
 export default function Multiplayer() {
   const [game, setGame] = useState(new Chess());
+  const [playMoveSound] = useSound(moveSound)
+  const [playCaptureSound] = useSound(captureSound)
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
@@ -15,6 +20,9 @@ export default function Multiplayer() {
 
     const newPosition = new Chess(game.fen())
     const result = newPosition.move(move)
+
+    if(result.san.includes('x')){playCaptureSound()} 
+    else{playMoveSound()}
 
     if (result === null) return null;
 

@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
+import useSound from "use-sound"
+import moveSound from "./sounds/Move.mp3"
+import captureSound from "./sounds/Capture.mp3"
 
 export default function PlayRandomMoveEngine() {
   const [game, setGame] = useState(new Chess());
+  const [playMoveSound] = useSound(moveSound)
+  const [playCaptureSound] = useSound(captureSound)
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
@@ -18,18 +23,26 @@ export default function PlayRandomMoveEngine() {
 
     if (result === null) return null;
 
+    if(result.san.includes('x')){playCaptureSound()} 
+      else{playMoveSound()}
+
     setGame(new Chess(newPosition.fen()))
     return result;
 }
 
   function makeRandomMove() {
     setGame(prevGame => {
-      const possibleMoves = prevGame.moves({ verbose: true });
+      const possibleMoves = prevGame.moves({ verbose: true })
       if (prevGame.isGameOver() || prevGame.isDraw() || possibleMoves.length === 0) return prevGame; // exit if the game is over
-      const randomIndex = Math.floor(Math.random() * possibleMoves.length);
+      const randomIndex = Math.floor(Math.random() * possibleMoves.length)
       const newPosition = new Chess(prevGame.fen())
       newPosition.move(possibleMoves[randomIndex])
-      return new Chess(newPosition.fen());
+      console.log(possibleMoves[randomIndex]);
+      
+      if(possibleMoves[randomIndex].san.includes('x')){playCaptureSound()} 
+      else{playMoveSound()}
+
+      return new Chess(newPosition.fen())
     });
   }
 
