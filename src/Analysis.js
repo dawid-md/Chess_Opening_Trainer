@@ -3,6 +3,7 @@ import { Chess } from "chess.js"
 import { Chessboard } from "react-chessboard"
 import axios from "axios"
 import CommentBox from "./CommentBox"
+import CustomSquareRenderer from "./CustomSquareRenderer"
 import { treeNode } from "./treeNode"
 import { treeToPGN } from "./treeNodePgn"
 import { treeToJSON } from "./treeToJSON"
@@ -14,14 +15,14 @@ export default function Analysis() {
   const [game] = useState(new Chess()) //main representation of the board
   const [orientation, setOrientation] = useState("white")
   const [fen, setFen] = useState(game.fen()) //fen of current position, setFen triggers board refresh
-  const [loadedMoves, setloadedMoves] = useState([])    //moves downloaded from database
-  const [hashTableMoves, sethashTableMoves] = useState([])  //?? stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
+  //const [hashTableMoves, sethashTableMoves] = useState([])  //?? stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
   const [optionSquares, setOptionSquares] = useState({}) //available moves for current piece clicked
   const [moveFrom, setMoveFrom] = useState("")   //sets current clicked square (if legal move is possible from that square)
   const [hashComments, sethashComments] = useState({})
   const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""})
   const [openings, setOpenings] = useState([])
   const [openingName, setopeningName] = useState("")
+  const [savedMoves, setsavedMoves] = useState([])
 
   const [moveTree, setmoveTree] = useState(null)
   const [currentNode, setcurrentNode] = useState(null)
@@ -53,13 +54,14 @@ export default function Analysis() {
     }
     if(!childFound){
       const newNode = new treeNode(result)  //create new node
-      currentNode.addChild(newNode)         //sets new node as children of the previous one
+      currentNode.addChild(newNode)         //sets new node as children of the previous one ??? changing state ???
       setcurrentNode(newNode)               //sets current as the one just created
     }
 
     setpgnView(treeToPGN(moveTree))
     setFen(game.fen())   //Triggers render with new position
-    setOptionSquares([])  //possible move for selected piece
+    setOptionSquares([])  //after move is made we can clear possible moves for selected piece
+
     return result        
   }
 
@@ -94,16 +96,6 @@ export default function Analysis() {
 
   function checkGame(){
     const fenPositionOnly = fen.split(' ').slice(0, 4).join(' ')
-    if(hashTableMoves.hasOwnProperty(fenPositionOnly)){
-        let newLoadedMoves = hashTableMoves[fenPositionOnly]
-        newLoadedMoves = Object.values(newLoadedMoves.reduce((acc, curr) => {
-            acc[curr[0]] = curr
-            return acc
-        }, {}))
-        setloadedMoves(newLoadedMoves) // used for printing <p>
-    } else {
-        setloadedMoves([]) // prevents printing moves when position is not found
-    }
 
     let loadedComment = hashComments[fenPositionOnly]?.comment
     let loadedCommentID = hashComments[fenPositionOnly]?.commentID
@@ -217,6 +209,7 @@ export default function Analysis() {
   }
 
   function getMoveOptions(square) {
+    console.log(square);
     const moves = game.moves({
       square,
       verbose: true,
@@ -229,13 +222,16 @@ export default function Analysis() {
     moves.map((move) => {
       newSquares[move.to] = {
         background:
-          game.get(move.to) && game.get(move.to).color !== game.get(square).color
-            ? "radial-gradient(circle, rgba(0,0,0,.1) 85%, transparent 85%)"
-            : "radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)",
+            savedMoves.includes(move.san)
+            ? "radial-gradient(circle, rgba(0,0,0) 25%, transparent 25%)"
+            : "radial-gradient(circle, rgba(0,200,0,.1) 25%, transparent 25%)",
         borderRadius: "50%",
       }
       return move
     })
+              // game.get(move.to) && game.get(move.to).color !== game.get(square).color
+              //   ? "radial-gradient(circle, rgba(0,0,0,.1) 85%, transparent 85%)"
+              //   : "radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)",
     newSquares[square] = {
       background: "rgba(255, 255, 100, 0.4)",
     }
@@ -244,6 +240,7 @@ export default function Analysis() {
   }
 
   function onSquareClick(square) {
+    //console.log(square)
     if(optionSquares && Object.keys(optionSquares).length !== 0) {
       onDrop(moveFrom, square)
     }
@@ -252,7 +249,9 @@ export default function Analysis() {
   }
 
   function onPieceDragBegin(piece, sourceSquare){
-    getMoveOptions(sourceSquare)
+    //event.stopPropagation()
+    const hasOptions = getMoveOptions(sourceSquare)
+    if (hasOptions) setMoveFrom(sourceSquare)
   }
 
   const changeopeningName = (event) => {
@@ -263,20 +262,27 @@ export default function Analysis() {
   useEffect(() => {
     if(moveTree == null){
       const rootNode = new treeNode('root')
-      //console.log(rootNode)
       setmoveTree(rootNode)
       setcurrentNode(rootNode)
     }
     checkGame()
-  }, [fen, hashTableMoves, hashComments])
+
+    const newsavedMoves = []
+    if(currentNode){
+      for(const child of currentNode.children){
+        newsavedMoves.push(child.move)
+      }
+      setsavedMoves(newsavedMoves)
+    }
+
+  }, [fen, hashComments, currentNode])
 
   return (
     <div className="mainDiv">
 
       <div className="leftPanel text-white">
         <div className="loadedMoves mx-2 px-1"> 
-          {loadedMoves.map(move => <p key={move} style={{color : "white"}}>{move[0]}</p>)}
-          {currentNode?.children?.map(elem => <p key={elem.move} style={{color : "white"}}>{elem.move}</p>)}
+          {savedMoves.map(elem => <p key={elem} style={{color : "white"}}>{elem}</p>)}
         </div>
 
         <div className="openings mx-2 my-2">
@@ -291,7 +297,8 @@ export default function Analysis() {
           onPieceDrop={onDrop} 
           onSquareClick={onSquareClick}
           onPieceDragBegin={onPieceDragBegin}
-          customSquareStyles={{...optionSquares}}
+          customSquareStyles={optionSquares} //available moves for clicked piece
+          //customSquare={(props) => <CustomSquareRenderer {...props} customSquares={mycustomSquares} />} //moves that follow saved openings lines
         />
 
         <div className="buttons">
