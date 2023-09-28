@@ -3,7 +3,6 @@ import { Chess } from "chess.js"
 import { Chessboard } from "react-chessboard"
 import axios from "axios"
 import CommentBox from "./CommentBox"
-//import CustomSquareRenderer from "./CustomSquareRenderer"
 import { treeNode } from "./treeNode"
 import { treeToPGN } from "./treeNodePgn"
 import { treeToJSON } from "./treeToJSON"
@@ -15,15 +14,14 @@ export default function Analysis() {
   const [game] = useState(new Chess()) //main representation of the board
   const [orientation, setOrientation] = useState("white")
   const [fen, setFen] = useState(game.fen()) //fen of current position, setFen triggers board refresh
-  //const [hashTableMoves, sethashTableMoves] = useState([])  //?? stores all positions and moves possible to each one of them (saved by user to database) - required for transposition
   const [optionSquares, setOptionSquares] = useState({}) //available moves for current piece clicked
   const [moveFrom, setMoveFrom] = useState("")   //sets current clicked square (if legal move is possible from that square)
   const [hashComments, sethashComments] = useState({})
   const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""})
-  const [openings, setOpenings] = useState([])
+  const [openings, setOpenings] = useState([])  //opening downloaded from database
   const [openingName, setopeningName] = useState("")
   const [savedMoves, setsavedMoves] = useState([])  //saved moves that application suggests with arrows
-  const [moveArrows, setmoveArrows] = useState([])
+  const [moveArrows, setmoveArrows] = useState([])  //suggests saved moves
 
   const [moveTree, setmoveTree] = useState(null)
   const [currentNode, setcurrentNode] = useState(null)
@@ -88,7 +86,7 @@ export default function Analysis() {
     const move = {
       from: sourceSquare,
       to: targetSquare,
-      promotion: "q", //always promote to a queen for simplicity
+      promotion: "q",
     }
     const result = makeMove(move)
     if (result === null) return false  //illegal move
@@ -148,30 +146,25 @@ export default function Analysis() {
   }
 
   function jsonToTree(flatJson) {
-    // Extract the root ID and the flat nodes object
-    const { rootId, nodes } = flatJson;
+    const { rootId, nodes } = flatJson //Extract the root ID and the flat nodes object
   
     function processNode(nodeId, parent = null) {
-      // Get the node from the flat nodes object using the ID
-      const jsonNode = nodes[nodeId];
+      const jsonNode = nodes[nodeId] //Get the node from the flat nodes object using the ID
   
-      // Create a tree node from the JSON node, including the parent if provided
-      const newNode = new treeNode(jsonNode.move ? {
+      const newNode = new treeNode(jsonNode.move ? {  //Create a tree node from the JSON node, including the parent if provided
           san: jsonNode.move,
           after: jsonNode.fen
-      } : 'root', parent);  // Changed variable name to 'newNode'
+      } : 'root', parent)  //Changed variable name to 'newNode'
   
-      // Recursively process the children, adding them to the tree node
-      jsonNode.children?.forEach(childId => {
+      jsonNode.children?.forEach(childId => {   //Recursively process the children, adding them to the tree node
         const childNode = processNode(childId, newNode);
-        newNode.addChild(childNode);  // Changed variable name to 'newNode'
+        newNode.addChild(childNode);  //Changed variable name to 'newNode'
       });
   
-      return newNode;  // Changed variable name to 'newNode'
+      return newNode;  //Changed variable name to 'newNode'
     }
   
-    // Start the recursive processing with the root ID
-    return processNode(rootId);
+    return processNode(rootId)   //Start the recursive processing with the root ID
   }   
 
   async function loadComment(){
@@ -266,15 +259,12 @@ export default function Analysis() {
     }
     const possibleMoves = game.moves({ verbose: true })
     const arrowMoves = []
-
-    console.log(savedMoves);
-    console.log(possibleMoves);
-
     possibleMoves.map(move => {
-      if(savedMoves.includes(move.san)){
-        console.log(move);
+      if(newsavedMoves.includes(move.san)){
+        arrowMoves.push([move.from, move.to, 'orange'])
       }
     })
+    setmoveArrows(arrowMoves)
 
   }, [fen, hashComments, currentNode])
 
@@ -299,21 +289,18 @@ export default function Analysis() {
           onSquareClick={onSquareClick}
           onPieceDragBegin={onPieceDragBegin}
           customSquareStyles={optionSquares} //available moves for clicked piece
-          //customArrows={[['g1', 'f3', 'light'], ['e2', 'e4', 'light']]}
+          customArrows={moveArrows}
         />
 
         <div className="buttons">
           <button className="btn btn-light btn-sm mx-1" onClick={moveBack}>Undo</button>
           <button className="btn btn-light btn-sm mx-1" onClick={moveForward}>Next</button>
           <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}>Reset</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={() => {
-            if(orientation === "white"){setOrientation("black")}
-            else{setOrientation("white")}
-          }}>Flip Board</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={() => {setOrientation(prevOrientation => (prevOrientation === "white" ? "black" : "white"))}}>Flip Board</button>
           <button className="btn btn-light btn-sm mx-1" onClick={saveTreeJSON}>Save</button>
           <button className="btn btn-light btn-sm mx-1" data-bs-toggle="modal" data-bs-target="#myModal">Save As</button>
-          {/* <button className="btn btn-light btn-sm mx-1" onClick={downloadtreeJSON}>Load</button> */}
           <button className="btn btn-light btn-sm mx-1" onClick={getOpenings}>Openings</button>
+          {/* <button className="btn btn-light btn-sm mx-1" onClick={downloadtreeJSON}>Load</button> */}
         </div>
       </div>
       
