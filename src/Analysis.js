@@ -3,7 +3,7 @@ import { Chess } from "chess.js"
 import { Chessboard } from "react-chessboard"
 import axios from "axios"
 import CommentBox from "./CommentBox"
-import CustomSquareRenderer from "./CustomSquareRenderer"
+//import CustomSquareRenderer from "./CustomSquareRenderer"
 import { treeNode } from "./treeNode"
 import { treeToPGN } from "./treeNodePgn"
 import { treeToJSON } from "./treeToJSON"
@@ -22,7 +22,8 @@ export default function Analysis() {
   const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""})
   const [openings, setOpenings] = useState([])
   const [openingName, setopeningName] = useState("")
-  const [savedMoves, setsavedMoves] = useState([])
+  const [savedMoves, setsavedMoves] = useState([])  //saved moves that application suggests with arrows
+  const [moveArrows, setmoveArrows] = useState([])
 
   const [moveTree, setmoveTree] = useState(null)
   const [currentNode, setcurrentNode] = useState(null)
@@ -209,7 +210,6 @@ export default function Analysis() {
   }
 
   function getMoveOptions(square) {
-    console.log(square);
     const moves = game.moves({
       square,
       verbose: true,
@@ -221,27 +221,17 @@ export default function Analysis() {
     const newSquares = {}
     moves.map((move) => {
       newSquares[move.to] = {
-        background:
-            savedMoves.includes(move.san)
-            ? "radial-gradient(circle, rgba(0,0,0) 25%, transparent 25%)"
-            : "radial-gradient(circle, rgba(0,200,0,.1) 25%, transparent 25%)",
+        background: "radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)",
         borderRadius: "50%",
       }
-      return move
+      //return move
     })
-              // game.get(move.to) && game.get(move.to).color !== game.get(square).color
-              //   ? "radial-gradient(circle, rgba(0,0,0,.1) 85%, transparent 85%)"
-              //   : "radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)",
-    newSquares[square] = {
-      background: "rgba(255, 255, 100, 0.4)",
-    }
     setOptionSquares(newSquares)
-    return true
+    //return true
   }
 
   function onSquareClick(square) {
-    //console.log(square)
-    if(optionSquares && Object.keys(optionSquares).length !== 0) {
+    if(optionSquares && Object.keys(optionSquares).length !== 0) {  //if this is the "drop piece" click to confirm the move
       onDrop(moveFrom, square)
     }
       const hasOptions = getMoveOptions(square)
@@ -249,7 +239,6 @@ export default function Analysis() {
   }
 
   function onPieceDragBegin(piece, sourceSquare){
-    //event.stopPropagation()
     const hasOptions = getMoveOptions(sourceSquare)
     if (hasOptions) setMoveFrom(sourceSquare)
   }
@@ -260,6 +249,7 @@ export default function Analysis() {
   }
 
   useEffect(() => {
+    console.log("rendered");
     if(moveTree == null){
       const rootNode = new treeNode('root')
       setmoveTree(rootNode)
@@ -274,6 +264,17 @@ export default function Analysis() {
       }
       setsavedMoves(newsavedMoves)
     }
+    const possibleMoves = game.moves({ verbose: true })
+    const arrowMoves = []
+
+    console.log(savedMoves);
+    console.log(possibleMoves);
+
+    possibleMoves.map(move => {
+      if(savedMoves.includes(move.san)){
+        console.log(move);
+      }
+    })
 
   }, [fen, hashComments, currentNode])
 
@@ -298,7 +299,7 @@ export default function Analysis() {
           onSquareClick={onSquareClick}
           onPieceDragBegin={onPieceDragBegin}
           customSquareStyles={optionSquares} //available moves for clicked piece
-          //customSquare={(props) => <CustomSquareRenderer {...props} customSquares={mycustomSquares} />} //moves that follow saved openings lines
+          //customArrows={[['g1', 'f3', 'light'], ['e2', 'e4', 'light']]}
         />
 
         <div className="buttons">
@@ -355,46 +356,3 @@ export default function Analysis() {
     </div>
   )
 }
-
-
-// async function loadLine(){
-//   const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/White.json`)
-//   const hashMoves = {}  // all moves and positions without fifty-move rule = need for filtering based on the current position
-
-//   for(const key in res.data){
-//       for(let fenPos of res.data[key]){
-//           const keyPos = fenPos.position.split(' ').slice(0, 4).join(' ')
-//           if(!hashMoves[keyPos]){ 
-//               hashMoves[keyPos] = [[fenPos.move, fenPos.moveVer, fenPos.comment]]
-//           } else if (!hashMoves[keyPos].some(item => item[0] === fenPos.move)) { 
-//               hashMoves[keyPos].push([fenPos.move, fenPos.moveVer]) // don't add duplicates 
-//           }
-//       }
-//   }
-//   sethashTableMoves(hashMoves)
-// }
-
-// function jsonToTreeOld(jsonObject, parent = null) {  //convert downloaded json back to tree
-//   const node = new treeNode(jsonObject.move ? {
-//       san: jsonObject.move,
-//       after: jsonObject.fen
-//   } : 'root', parent)
-
-//   jsonObject.children?.forEach(child => {
-//       const childNode = jsonToTree(child, node)
-//       node.addChild(childNode)
-//   })
-
-//   return node
-// }
-
-// async function downloadtreeJSON(){
-//   const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`)
-//   const rootNode = Object.keys(res.data)[0]
-//   let tree = jsonToTree(res.data[rootNode])
-//   game.reset()          //resets game to the starting position
-//   setFen(game.fen())  //Triggers render with new position
-//   setmoveTree(tree)
-//   setcurrentNode(tree)
-//   setpgnView(treeToPGN(tree))
-// }
