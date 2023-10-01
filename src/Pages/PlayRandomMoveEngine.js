@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import useSound from "use-sound"
-import moveSound from "./sounds/Move.mp3"
-import captureSound from "./sounds/Capture.mp3"
+import moveSound from "../sounds/Move.mp3"
+import captureSound from "../sounds/Capture.mp3"
 
 export default function PlayRandomMoveEngine() {
   const [game, setGame] = useState(new Chess());
@@ -61,7 +61,7 @@ export default function PlayRandomMoveEngine() {
 
   return(
   <div className="mainDiv">
-    <div className="chessboardDiv w-75">
+    <div className="w-50">
       <Chessboard 
         position={game.fen()} 
         onPieceDrop={onDrop} 

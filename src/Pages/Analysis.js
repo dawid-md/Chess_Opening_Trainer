@@ -2,13 +2,13 @@ import { useEffect, useState } from "react"
 import { Chess } from "chess.js"
 import { Chessboard } from "react-chessboard"
 import axios from "axios"
-import CommentBox from "./CommentBox"
-import { treeNode } from "./treeNode"
-import { treeToPGN } from "./treeNodePgn"
-import { treeToJSON } from "./treeToJSON"
+import CommentBox from "../Components/CommentBox"
+import { treeNode } from "../treeNode"
+import { treeToPGN } from "../treeNodePgn"
+import { treeToJSON } from "../treeToJSON"
 import useSound from "use-sound"
-import moveSound from "./sounds/Move.mp3"
-import captureSound from "./sounds/Capture.mp3"
+import moveSound from "../sounds/Move.mp3"
+import captureSound from "../sounds/Capture.mp3"
 
 export default function Analysis() {
   const [game] = useState(new Chess()) //main representation of the board
@@ -281,7 +281,7 @@ export default function Analysis() {
         </div>
       </div>
 
-      <div className="chessboardDiv w-75">
+      <div className="w-75">
         <Chessboard 
           position={fen} 
           boardOrientation={orientation}
