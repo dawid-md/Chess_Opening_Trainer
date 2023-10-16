@@ -1,9 +1,10 @@
 import Panel from "../Components/Panel"
+import './Home.css'
 
 export default function Home(){
     return(
         <>
-          <div>Home</div>
+          <h1 className="homeTitle text-center my-5">Chess Openings Trainer Pro</h1>
         </>
     )
 }
