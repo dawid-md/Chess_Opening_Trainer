@@ -113,6 +113,7 @@ export default function Analysis() {
     setmoveTree(newTreeNode)
     setcurrentNode(newTreeNode)
     setpgnView("")
+    sethashComments({})
   }
 
   const saveTreeJSON = async () => {      //upload tree json to database
@@ -147,23 +148,18 @@ export default function Analysis() {
 
   function jsonToTree(flatJson) {
     const { rootId, nodes } = flatJson //Extract the root ID and the flat nodes object
-  
     function processNode(nodeId, parent = null) {
       const jsonNode = nodes[nodeId] //Get the node from the flat nodes object using the ID
-  
       const newNode = new treeNode(jsonNode.move ? {  //Create a tree node from the JSON node, including the parent if provided
           san: jsonNode.move,
           after: jsonNode.fen
       } : 'root', parent)  //Changed variable name to 'newNode'
-  
       jsonNode.children?.forEach(childId => {   //Recursively process the children, adding them to the tree node
         const childNode = processNode(childId, newNode);
         newNode.addChild(childNode);  //Changed variable name to 'newNode'
       });
-  
       return newNode;  //Changed variable name to 'newNode'
     }
-  
     return processNode(rootId)   //Start the recursive processing with the root ID
   }   
 
@@ -272,11 +268,11 @@ export default function Analysis() {
     <div className="mainDiv">
 
       <div className="leftPanel text-white">
-        <div className="loadedMoves mx-2 px-1"> 
+        <div className="loadedMoves"> 
           {savedMoves.map(elem => <p key={elem} style={{color : "white"}}>{elem}</p>)}
         </div>
 
-        <div className="openings mx-2 my-2">
+        <div className="openings">
           {openings.map((item, index) => <p id={item.id} key={index} onClick={() => selectOpening(item.id)}>{item.name}</p>)}
         </div>
       </div>
@@ -306,11 +302,11 @@ export default function Analysis() {
       
       <div className="rightpanel">
 
-        <div className="moveMades mx-2 px-1 text-white">
+        <div className="moveMades text-white">
           <p>{pgnView}</p>
         </div>
 
-        <div className="commentsDiv mx-2 my-2">
+        <div className="commentsDiv">
           <CommentBox comment={comment} setComment={setComment} position={fen} />
         </div>
         
