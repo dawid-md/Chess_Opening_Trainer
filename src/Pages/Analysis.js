@@ -7,8 +7,10 @@ import { treeNode } from "../treeNode"
 import { treeToPGN } from "../treeNodePgn"
 import { treeToJSON } from "../treeToJSON"
 import useSound from "use-sound"
-import moveSound from "../sounds/Move.mp3"
+import moveSound from "../Sounds/Move.mp3"
 import captureSound from "../Sounds/Capture.mp3"
+import { getDatabase, ref, get } from 'firebase/database'
+import { app } from "../Config/firebase"
 
 export default function Analysis() {
   const [game] = useState(new Chess()) //main representation of the board
@@ -123,17 +125,37 @@ export default function Analysis() {
     setopeningName("")
   }
 
+  // async function getOpenings(){
+  //   const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`)
+  //   const openingsArray = []
+  //   for(const key of Object.keys(res.data)){
+  //     const itemWithKey = {
+  //       id: key,
+  //       ...res.data[key]
+  //     }
+  //     openingsArray.push(itemWithKey)
+  //   }
+  //   setOpenings(openingsArray)
+  // }
+
   async function getOpenings(){
-    const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`)
-    const openingsArray = []
-    for(const key of Object.keys(res.data)){
-      const itemWithKey = {
-        id: key,
-        ...res.data[key]
+    const db = getDatabase()
+    const openingsRef = ref(db, 'Trees')
+    try{
+      const snapshot = await get(openingsRef)
+      if(snapshot.exists()) {
+        const data = snapshot.val()
+        const openingsArray = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }))
+        setOpenings(openingsArray)
+      } else {
+        console.log("No data available")
       }
-      openingsArray.push(itemWithKey)
+    } catch (error) {
+      console.log(error);
     }
-    setOpenings(openingsArray)
   }
 
   function selectOpening(id){
@@ -203,6 +225,7 @@ export default function Analysis() {
       square,
       verbose: true,
     })
+    console.log(moves);
     if (moves.length === 0) {
       setOptionSquares([])
       return false
@@ -213,23 +236,26 @@ export default function Analysis() {
         background: "radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)",
         borderRadius: "50%",
       }
-      //return move
     })
     setOptionSquares(newSquares)
-    //return true
+    return true
   }
 
   function onSquareClick(square) {
     if(optionSquares && Object.keys(optionSquares).length !== 0) {  //if this is the "drop piece" click to confirm the move
       onDrop(moveFrom, square)
     }
+    else{
       const hasOptions = getMoveOptions(square)
-      if (hasOptions) setMoveFrom(square)
+      if (hasOptions) {
+        setMoveFrom(square)
+      }
+    }
   }
 
   function onPieceDragBegin(piece, sourceSquare){
     const hasOptions = getMoveOptions(sourceSquare)
-    if (hasOptions) setMoveFrom(sourceSquare)
+    if (hasOptions) {setMoveFrom(sourceSquare)}
   }
 
   const changeopeningName = (event) => {
