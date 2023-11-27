@@ -8,7 +8,7 @@ import { treeToPGN } from "../treeNodePgn"
 import { treeToJSON } from "../treeToJSON"
 import useSound from "use-sound"
 import moveSound from "../sounds/Move.mp3"
-import captureSound from "../sounds/Capture.mp3"
+import captureSound from "../Sounds/Capture.mp3"
 
 export default function Analysis() {
   const [game] = useState(new Chess()) //main representation of the board
