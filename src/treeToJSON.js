@@ -37,7 +37,7 @@ export function treeToJSON(node) {
   function processNode(node) {
     const nodeId = generateUniqueId();
     const jsonNode = {
-      move: node.move,
+      move: node.move || null,
       fen: node.fen,
       children: []
     };
