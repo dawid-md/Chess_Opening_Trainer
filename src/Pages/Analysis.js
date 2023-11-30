@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import { Chess } from "chess.js"
 import { Chessboard } from "react-chessboard"
-import axios from "axios"
 import CommentBox from "../Components/CommentBox"
 import { treeNode } from "../treeNode"
 import { treeToPGN } from "../treeNodePgn"
@@ -10,7 +9,7 @@ import useSound from "use-sound"
 import moveSound from "../Sounds/Move.mp3"
 import captureSound from "../Sounds/Capture.mp3"
 import { getDatabase, ref, get, push, remove, update } from 'firebase/database'
-import { app } from "../Config/firebase"
+// import { app } from "../Config/firebase"
 
 export default function Analysis() {
   const [game] = useState(new Chess())  //main representation of the board
@@ -21,7 +20,8 @@ export default function Analysis() {
   const [hashComments, sethashComments] = useState({})
   const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""})
   const [openings, setOpenings] = useState([])    //opening downloaded from database
-  const [openingName, setopeningName] = useState("")
+  const [openingID, setOpeningID] = useState([""])  //id of the current opening that is selected by user and edited
+  const [openingName, setopeningName] = useState("")  //name chosed before saving 
   const [savedMoves, setsavedMoves] = useState([])    //saved moves that application suggests with arrows
   const [moveArrows, setmoveArrows] = useState([])    //suggests saved moves
 
@@ -114,21 +114,32 @@ export default function Analysis() {
     const newTreeNode = new treeNode('root')
     setmoveTree(newTreeNode)
     setcurrentNode(newTreeNode)
+    setOpeningID("")
     setpgnView("")
     sethashComments({})
   }
 
   const saveTreeJSON = async () => {      //upload tree json to database
-    const result = treeToJSON(moveTree)
-    result.name = openingName
     const db = getDatabase()
     const treesRef = ref(db, 'Trees')
-    try {
-      await push(treesRef, result)
-    } catch (error) {
-      console.log(error)
+    const result = treeToJSON(moveTree)
+    result.name = openingName
+    if(openingID == ""){
+      try {
+        await push(treesRef, result)  //upload whole result object
+      } catch (error) {
+        console.log(error)
+      }
+      setopeningName("")
+    } else {
+      const specificOpeningRef  = ref(db, `Trees/${openingID}`)
+      try{
+        await update(specificOpeningRef, { "nodes": result.nodes })
+        console.log('opening updated');
+      } catch (error) {
+        console.log(error);
+      }
     }
-    setopeningName("")
   }
 
   async function getOpenings(){
@@ -138,6 +149,7 @@ export default function Analysis() {
       const snapshot = await get(openingsRef)
       if(snapshot.exists()) {
         const data = snapshot.val()
+        console.log(data);
         const openingsArray = Object.keys(data).map(key => ({
           id: key,
           ...data[key]
@@ -156,6 +168,7 @@ export default function Analysis() {
     let tree = jsonToTree(rootNode)  //convert json to tree
     game.reset()          //resets game to the starting position
     setFen(game.fen())    //Triggers render with new position
+    setOpeningID(id)      //id of selected opening by user
     setmoveTree(tree)
     setcurrentNode(tree)
     setpgnView(treeToPGN(tree))
@@ -208,8 +221,8 @@ export default function Analysis() {
   async function saveComment(){
     const db = getDatabase();
     const commentsRef = ref(db, 'Comments');
-  
-    if(comment !== ""){
+    console.log(comment)
+    if(comment.commentID == ""){
       try {
         await push(commentsRef, comment);
         console.log("comment saved");
@@ -247,7 +260,6 @@ export default function Analysis() {
       square,
       verbose: true,
     })
-    console.log(moves);
     if (moves.length === 0) {
       setOptionSquares([])
       return false
