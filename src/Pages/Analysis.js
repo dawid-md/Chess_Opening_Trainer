@@ -9,7 +9,7 @@ import useSound from "use-sound"
 import moveSound from "../Sounds/Move.mp3"
 import captureSound from "../Sounds/Capture.mp3"
 import { getDatabase, ref, get, push, remove, update } from 'firebase/database'
-// import { app } from "../Config/firebase"
+import { app } from "../Config/firebase"  //this is important, don't comment it out
 
 export default function Analysis() {
   const [game] = useState(new Chess())  //main representation of the board
@@ -91,8 +91,7 @@ export default function Analysis() {
       promotion: "q",
     }
     const result = makeMove(move)
-    if (result === null) return false   //illegal move
-    return true
+    return result !== null; //if result === null return false, else return true
   }
 
   function checkGame(){
