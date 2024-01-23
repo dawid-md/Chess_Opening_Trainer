@@ -95,7 +95,7 @@ export default function Analysis() {
   }
 
   function checkGame(){
-    const fenPositionOnly = fen.split(' ').slice(0, 4).join(' ')
+    const fenPositionOnly = fen.split(' ').slice(0, 4).join(' ')  //remove last part of fen to enable transposition
 
     let loadedComment = hashComments[fenPositionOnly]?.comment
     let loadedCommentID = hashComments[fenPositionOnly]?.commentID
@@ -200,7 +200,7 @@ export default function Analysis() {
       if (snapshot.exists()) {
         const data = snapshot.val()
         for(const key in data){
-          const keyPos = data[key]["position"].split(' ').slice(0, 4).join(' ')
+          const keyPos = data[key]["position"].split(' ').slice(0, 4).join(' ') //don't include last part of fen
           if(!hashComments[keyPos]){
             hashComments[keyPos] = {
               "comment" : data[key]["comment"],
@@ -320,6 +320,11 @@ export default function Analysis() {
       }
     })
     setmoveArrows(arrowMoves)
+
+    if(Object.keys(hashComments).length === 0){
+      console.log('download comments');
+      loadComment()
+    }
 
   }, [fen, hashComments, currentNode])
 

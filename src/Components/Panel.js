@@ -12,6 +12,7 @@ export default function Panel(){
                 <div className="collapse navbar-collapse" id="navmenu">
                     <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
                         <li><Link className="nav-link" to="/">Home</Link></li>
+                        <li><Link className="nav-link" to="/register">Register</Link></li>
                         <li><Link className="nav-link" to="/analysis">Analysis</Link></li>
                         <li><Link className="nav-link" to="/multiplayer">Multiplayer</Link></li>
                         <li><Link className="nav-link" to="/random">Random</Link></li>

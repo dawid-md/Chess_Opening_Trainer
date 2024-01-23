@@ -5,6 +5,7 @@ import Panel from "./Components/Panel";
 import Home from "./Pages/Home";
 import Analysis from "./Pages/Analysis";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import Register from './Pages/Register';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
           <Route path="/analysis" element={<Analysis />} />
           <Route path="/multiplayer" element={<Multiplayer />} />
           <Route path="/random" element={<PlayRandomMoveEngine />} />
+          <Route path="/register" element={<Register />} />
         </Routes>
       </Router>
     </div>
