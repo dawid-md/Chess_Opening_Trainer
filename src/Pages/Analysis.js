@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { Chess } from "chess.js"
 import { Chessboard } from "react-chessboard"
 import CommentBox from "../Components/CommentBox"
@@ -8,10 +8,12 @@ import { treeToJSON } from "../treeToJSON"
 import useSound from "use-sound"
 import moveSound from "../Sounds/Move.mp3"
 import captureSound from "../Sounds/Capture.mp3"
-import { getDatabase, ref, get, push, remove, update } from 'firebase/database'
+import { getDatabase, ref, get, push, remove, update, query, orderByChild, equalTo } from 'firebase/database'
 import { app } from "../Config/firebase"  //this is important, don't comment it out
+import { AuthContext } from "../App"
 
 export default function Analysis() {
+  const {user} = useContext(AuthContext)
   const [game] = useState(new Chess())  //main representation of the board
   const [orientation, setOrientation] = useState("white")
   const [fen, setFen] = useState(game.fen())  //fen of current position, setFen triggers board refresh
@@ -22,6 +24,7 @@ export default function Analysis() {
   const [openings, setOpenings] = useState([])    //opening downloaded from database
   const [openingID, setOpeningID] = useState([""])  //id of the current opening that is selected by user and edited
   const [openingName, setopeningName] = useState("")  //name chosed before saving 
+  const [openingColor, setopeningColor] = useState("")  //name chosed before saving 
   const [savedMoves, setsavedMoves] = useState([])    //saved moves that application suggests with arrows
   const [moveArrows, setmoveArrows] = useState([])    //suggests saved moves
 
@@ -121,9 +124,11 @@ export default function Analysis() {
   const saveTreeJSON = async () => {      //upload tree json to database
     const db = getDatabase()
     const treesRef = ref(db, 'Trees')
-    const result = treeToJSON(moveTree)
+    const result = treeToJSON(moveTree)   //convert tree to more flat structure
     result.name = openingName
+
     if(openingID == ""){
+      result.userID = user.uid
       try {
         await push(treesRef, result)  //upload whole result object
       } catch (error) {
@@ -143,7 +148,7 @@ export default function Analysis() {
 
   async function getOpenings(){
     const db = getDatabase()
-    const openingsRef = ref(db, 'Trees')
+    const openingsRef = query(ref(db, 'Trees'), orderByChild('userID'), equalTo(user.uid))
     try{
       const snapshot = await get(openingsRef)
       if(snapshot.exists()) {
@@ -296,8 +301,14 @@ export default function Analysis() {
     setopeningName(event.target.value)
   }
 
+  const changeopeningColor = (event) => {
+    event.preventDefault()
+    setopeningColor(event.target.value)
+  }
+
   useEffect(() => {
     console.log("rendered");
+
     if(moveTree == null){
       const rootNode = new treeNode('root')
       setmoveTree(rootNode)
@@ -321,7 +332,7 @@ export default function Analysis() {
     })
     setmoveArrows(arrowMoves)
 
-    if(Object.keys(hashComments).length === 0){
+    if(user && moveTree && Object.keys(hashComments).length === 0){   //checks user and movetree to avoid unnecessary comments download
       console.log('download comments');
       loadComment()
     }
@@ -386,11 +397,19 @@ export default function Analysis() {
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title">Opening Name</h5>
+              <h5 className="modal-title">Save Opening</h5>
               <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div className="modal-body">
+              <p>Name</p>
               <input type="text" onChange={changeopeningName} className="form-control" placeholder="Opening Name"/>
+              {/* <input type="text" onChange={changeopeningColor} className="form-control" placeholder="Opening Color"/> */}
+              <p>Color</p>
+              <select onChange={changeopeningColor} className="form-control mt-2">
+                <option value="both">Both</option>
+                <option value="white">White</option>
+                <option value="black">Black</option>
+              </select>
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
