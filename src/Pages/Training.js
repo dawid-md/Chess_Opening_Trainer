@@ -11,9 +11,8 @@ import captureSound from "../Sounds/Capture.mp3"
 import { getDatabase, ref, get, push, remove, update, query, orderByChild, equalTo } from 'firebase/database'
 import { app } from "../Config/firebase"  //this is important, don't comment it out
 import { AuthContext } from "../App"
-import { ArrowClockwise, ArrowDownUp, ArrowLeft, ArrowRepeat, ArrowRight } from "react-bootstrap-icons"
 
-export default function Analysis() {
+export default function Training() {
   const {user} = useContext(AuthContext)
   const [game] = useState(new Chess())  //main representation of the board
   const [orientation, setOrientation] = useState("white")
@@ -308,11 +307,6 @@ export default function Analysis() {
     setopeningColor(event.target.value)
   }
 
-  const handleKeyPress = (event) => {
-    if(event.key === "ArrowRight"){moveForward()}
-    if(event.key === "ArrowLeft"){moveBack()}
-  }
-
   useEffect(() => {
     console.log("rendered");
 
@@ -344,9 +338,6 @@ export default function Analysis() {
       loadComment()
     }
 
-    window.addEventListener("keydown", handleKeyPress)
-    return () => {window.removeEventListener("keydown", handleKeyPress)}
-
   }, [fen, hashComments, currentNode])
 
   return (
@@ -374,10 +365,10 @@ export default function Analysis() {
         />
 
         <div className="buttons">
-          <button className="btn btn-light btn-sm mx-1" onClick={moveBack}><ArrowLeft /></button>
-          <button className="btn btn-light btn-sm mx-1" onClick={moveForward}><ArrowRight /></button>
-          <button className="btn btn-light btn-sm mx-1" onClick={() => {setOrientation(prevOrientation => (prevOrientation === "white" ? "black" : "white"))}}><ArrowDownUp /></button>
-          <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}><ArrowClockwise /></button>
+          <button className="btn btn-light btn-sm mx-1" onClick={moveBack}>Undo</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={moveForward}>Next</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}>Reset</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={() => {setOrientation(prevOrientation => (prevOrientation === "white" ? "black" : "white"))}}>Flip Board</button>
           <button className="btn btn-light btn-sm mx-1" onClick={saveOpening}>Save</button>
           <button className="btn btn-light btn-sm mx-1" data-bs-toggle="modal" data-bs-target="#myModal">Save As</button>
           <button className="btn btn-light btn-sm mx-1" onClick={getOpenings}>Openings</button>
@@ -432,72 +423,3 @@ export default function Analysis() {
     </div>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-//---------------------axios
-  // const saveTreeJSON = async () => {      //upload tree json to database
-  //   const result = treeToJSON(moveTree)
-  //   result.name = openingName
-  //   console.log(result);
-  //   const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`, result)
-  //   setopeningName("")
-  // }
-
-    // async function deleteComment(){
-  //   if(comment.commentID != ""){
-  //     const res = await axios.delete(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments/${comment.commentID}.json`)
-  //     loadComment()
-  //   }
-  // }
-
-    // async function saveComment(){
-  //   if(comment != ""){
-  //     const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments.json`, comment)
-  //     console.log("comment saved")
-  //   } 
-  //   else{ //update comment
-  //     const res = await axios.patch(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments/${comment.commentID}.json`, {"comment" : comment.comment})
-  //     console.log("comment updated")
-  //   }
-  //   loadComment()
-  // }
-
-    // async function loadComment(){
-  //   const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments.json`)
-  //   const hashComments = {}
-
-  //   for(const key in res.data){
-  //       const keyPos = res.data[key]["position"].split(' ').slice(0, 4).join(' ')
-  //       if(!hashComments[keyPos]){ 
-  //         hashComments[keyPos] = {
-  //           "comment" : res.data[key]["comment"],
-  //           "commentID" : key
-  //         }
-  //       }
-  //   }
-  //   sethashComments(hashComments)
-  // }
-
-    // async function getOpenings(){
-  //   const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`)
-  //   const openingsArray = []
-  //   for(const key of Object.keys(res.data)){
-  //     const itemWithKey = {
-  //       id: key,
-  //       ...res.data[key]
-  //     }
-  //     openingsArray.push(itemWithKey)
-  //   }
-  //   setOpenings(openingsArray)
-  // }
