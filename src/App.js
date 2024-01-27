@@ -9,6 +9,7 @@ import Register from './Pages/Register';
 import Login from './Pages/Login';
 import { useState, useEffect, createContext } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import Training from './Pages/Training';
 
 export const AuthContext = createContext()
 
@@ -37,6 +38,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/analysis" element={<Analysis />} />
+          <Route path="/training" element={<Training />} />
           <Route path="/multiplayer" element={<Multiplayer />} />
           <Route path="/random" element={<PlayRandomMoveEngine />} />
           <Route path="/register" element={<Register />} />

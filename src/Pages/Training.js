@@ -50,17 +50,24 @@ export default function Training() {
 
     let childFound = false
     for(const child of currentNode.children){
-      if(child.move == result.san){
+      if(child.move === result.san){
         setcurrentNode(child)
         childFound = true
         break
       }
     }
-    if(!childFound){
-      const newNode = new treeNode(result)    //create new node
-      currentNode.addChild(newNode)           //sets new node as children of the previous one ??? changing state ???
-      setcurrentNode(newNode)                 //sets current as the one just created
+
+    if(childFound === false){
+      console.log("incorrect move");
+      setTimeout(() => moveBack(),200)
+      //moveBack()
     }
+
+    // if(childFound === false){  //creating new line if the child doesn't exist
+    //   const newNode = new treeNode(result)    //create new node
+    //   currentNode.addChild(newNode)           //sets new node as children of the previous one ??? changing state ???
+    //   setcurrentNode(newNode)                 //sets current as the one just created
+    // }
 
     setpgnView(treeToPGN(moveTree))
     setFen(game.fen())    //Triggers render with new position
@@ -119,32 +126,6 @@ export default function Training() {
     setOpeningID("")
     setpgnView("")
     sethashComments({})
-  }
-
-  const saveOpening = async () => {      //upload opening tree json to database
-    const db = getDatabase()
-    const openingsRef = ref(db, 'Openings')
-    const result = treeToJSON(moveTree)   //convert tree to more flat structure
-    result.name = openingName
-    result.color = openingColor
-
-    if(openingID == ""){
-      result.userID = user.uid
-      try {
-        await push(openingsRef, result)  //upload whole result object
-      } catch (error) {
-        console.log(error)
-      }
-      setopeningName("")
-    } else {
-      const specificOpeningRef  = ref(db, `Openings/${openingID}`)
-      try{
-        await update(specificOpeningRef, { "nodes": result.nodes })
-        console.log('opening updated');
-      } catch (error) {
-        console.log(error);
-      }
-    }
   }
 
   async function getOpenings(){
@@ -344,11 +325,13 @@ export default function Training() {
     <div className="mainDiv">
 
       <div className="leftPanel text-white">
+
         <div className="loadedMoves"> 
           {savedMoves.map(elem => <p key={elem} style={{color : "white"}}>{elem}</p>)}
         </div>
 
         <div className="openings">
+          <h5>Select Opening</h5>
           {openings.map((item, index) => <p id={item.id} key={index} onClick={() => selectOpening(item.id)}>{item.name}</p>)}
         </div>
       </div>
@@ -361,7 +344,7 @@ export default function Training() {
           onSquareClick={onSquareClick}
           onPieceDragBegin={onPieceDragBegin}
           customSquareStyles={optionSquares}    //available moves for clicked piece
-          customArrows={moveArrows}
+          // customArrows={moveArrows}
         />
 
         <div className="buttons">
@@ -369,8 +352,6 @@ export default function Training() {
           <button className="btn btn-light btn-sm mx-1" onClick={moveForward}>Next</button>
           <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}>Reset</button>
           <button className="btn btn-light btn-sm mx-1" onClick={() => {setOrientation(prevOrientation => (prevOrientation === "white" ? "black" : "white"))}}>Flip Board</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={saveOpening}>Save</button>
-          <button className="btn btn-light btn-sm mx-1" data-bs-toggle="modal" data-bs-target="#myModal">Save As</button>
           <button className="btn btn-light btn-sm mx-1" onClick={getOpenings}>Openings</button>
           {/* <button className="btn btn-light btn-sm mx-1" onClick={downloadtreeJSON}>Load</button> */}
         </div>
@@ -378,7 +359,7 @@ export default function Training() {
       
       <div className="rightpanel">
 
-        <div className="moveMades text-white">
+        <div className="moveMades text-white">  {/* pgn view of line */}
           <p>{pgnView}</p>
         </div>
 
@@ -393,33 +374,6 @@ export default function Training() {
         </div>
 
       </div>
-
-      <div className="modal" id="myModal" tabIndex="-1">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Save Opening</h5>
-              <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div className="modal-body">
-              <p>Name</p>
-              <input type="text" onChange={changeopeningName} className="form-control" placeholder="Opening Name"/>
-              {/* <input type="text" onChange={changeopeningColor} className="form-control" placeholder="Opening Color"/> */}
-              <p>Color</p>
-              <select onChange={changeopeningColor} className="form-control mt-2">
-                <option value="both">Both</option>
-                <option value="white">White</option>
-                <option value="black">Black</option>
-              </select>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" className="btn btn-primary" data-bs-dismiss="modal" onClick={saveOpening}>Save</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
   )
 }
