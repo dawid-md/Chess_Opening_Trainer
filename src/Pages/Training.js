@@ -53,27 +53,29 @@ export default function Training() {
       if(child.move === result.san){
         setcurrentNode(child)
         childFound = true
+        const newsavedMoves = []
+          for(const child of currentNode.children){
+            newsavedMoves.push(child.move)
+          }
+          setsavedMoves(newsavedMoves)
+        setFen(game.fen())    //Triggers render with new position
         break
       }
     }
-
     if(childFound === false){
-      console.log("incorrect move");
-      setTimeout(() => moveBack(),200)
-      //moveBack()
+      game.undo()             //try to make the app to wait some time eg 200ms
+      const newsavedMoves = []
+      for(const child of currentNode.children){
+        newsavedMoves.push(child.move)
+      }
+      setsavedMoves(newsavedMoves)
     }
 
-    // if(childFound === false){  //creating new line if the child doesn't exist
-    //   const newNode = new treeNode(result)    //create new node
-    //   currentNode.addChild(newNode)           //sets new node as children of the previous one ??? changing state ???
-    //   setcurrentNode(newNode)                 //sets current as the one just created
-    // }
-
-    setpgnView(treeToPGN(moveTree))
-    setFen(game.fen())    //Triggers render with new position
+    // setpgnView(treeToPGN(moveTree))
+    //setFen(game.fen())    //Triggers render with new position
     setOptionSquares([])  //after move is made we can clear possible moves for selected piece
 
-    return result        
+    // return result        
   }
 
   const moveBack = () => {
@@ -100,16 +102,15 @@ export default function Training() {
       to: targetSquare,
       promotion: "q",
     }
-    const result = makeMove(move)
-    return result !== null; //if result === null return false, else return true
+    makeMove(move)
+    //const result = makeMove(move)
+    // return result !== null; //if result === null return false, else return true
   }
 
   function checkGame(){
     const fenPositionOnly = fen.split(' ').slice(0, 4).join(' ')  //remove last part of fen to enable transposition
-
     let loadedComment = hashComments[fenPositionOnly]?.comment
     let loadedCommentID = hashComments[fenPositionOnly]?.commentID
-    
     setComment({
       position: fen,
       comment: loadedComment || "",
@@ -204,43 +205,6 @@ export default function Training() {
     }
   }
 
-  async function saveComment(){
-    const db = getDatabase();
-    const commentsRef = ref(db, 'Comments');
-    console.log(comment)
-    if(comment.commentID == ""){
-      try {
-        await push(commentsRef, comment);
-        console.log("comment saved");
-      } catch (error) {
-        console.log(error);
-      }
-    } else {    //update comment
-      const specificCommentRef = ref(db, `Comments/${comment.commentID}`);
-      try {
-        await update(specificCommentRef, { "comment": comment.comment });
-        console.log("comment updated");
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    loadComment();
-  }
-
-  async function deleteComment(){
-    const db = getDatabase()
-  
-    if(comment.commentID != ""){
-      const commentRef = ref(db, `Comments/${comment.commentID}`)
-      try {
-        await remove(commentRef)
-        loadComment()
-      } catch (error) {
-        console.log(error)
-      }
-    }
-  }
-
   function getMoveOptions(square) {
     const moves = game.moves({
       square,
@@ -278,16 +242,6 @@ export default function Training() {
     if (hasOptions) {setMoveFrom(sourceSquare)}
   }
 
-  const changeopeningName = (event) => {
-    event.preventDefault()
-    setopeningName(event.target.value)
-  }
-
-  const changeopeningColor = (event) => {
-    event.preventDefault()
-    setopeningColor(event.target.value)
-  }
-
   useEffect(() => {
     console.log("rendered");
 
@@ -296,23 +250,24 @@ export default function Training() {
       setmoveTree(rootNode)
       setcurrentNode(rootNode)
     }
-    checkGame()
+    checkGame() //for now it just loads the comment for the current position
 
     const newsavedMoves = []
-    if(currentNode){
+    if(currentNode && newsavedMoves.length === 0){
       for(const child of currentNode.children){
         newsavedMoves.push(child.move)
       }
       setsavedMoves(newsavedMoves)
     }
-    const possibleMoves = game.moves({ verbose: true })
-    const arrowMoves = []
-    possibleMoves.forEach(move => {   //changed from map
-      if(newsavedMoves.includes(move.san)){
-        arrowMoves.push([move.from, move.to, 'orange'])
-      }
-    })
-    setmoveArrows(arrowMoves)
+
+    // const possibleMoves = game.moves({ verbose: true })
+    // const arrowMoves = []
+    // possibleMoves.forEach(move => {   //changed from map
+    //   if(newsavedMoves.includes(move.san)){
+    //     arrowMoves.push([move.from, move.to, 'orange'])
+    //   }
+    // })
+    // setmoveArrows(arrowMoves)
 
     if(user && moveTree && Object.keys(hashComments).length === 0){   //checks user and movetree to avoid unnecessary comments download
       console.log('download comments');
@@ -368,9 +323,9 @@ export default function Training() {
         </div>
         
         <div className="commentButtons text-center">
-          <button className="btn btn-light btn-sm mx-2" onClick={saveComment}>Save</button>
-          <button className="btn btn-light btn-sm" onClick={loadComment}>Load</button>
-          <button className="btn btn-light btn-sm mx-2" onClick={deleteComment}>Delete</button>
+          {/* <button className="btn btn-light btn-sm mx-2" onClick={saveComment}>Save</button> */}
+          {/* <button className="btn btn-light btn-sm" onClick={loadComment}>Load</button> */}
+          {/* <button className="btn btn-light btn-sm mx-2" onClick={deleteComment}>Delete</button> */}
         </div>
 
       </div>
