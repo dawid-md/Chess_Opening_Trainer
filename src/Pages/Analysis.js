@@ -26,10 +26,10 @@ export default function Analysis() {
   const [openingID, setOpeningID] = useState([""])  //id of the current opening that is selected by user and edited
   const [openingName, setopeningName] = useState("")  //name chosed before saving 
   const [openingColor, setopeningColor] = useState("")  //name chosed before saving 
-  const [savedMoves, setsavedMoves] = useState([])    //saved moves that application suggests with arrows
-  const [moveArrows, setmoveArrows] = useState([])    //suggests saved moves
+  const [bookMoves, setbookMoves] = useState([])      //saved book moves that application suggests with arrows
+  const [bookMovesArrows, setbookMovesArrows] = useState([])    //suggests saved book moves
 
-  const [moveTree, setmoveTree] = useState(null)
+  const [moveTree, setmoveTree] = useState(null)  //main tree of all nodes (moves)
   const [currentNode, setcurrentNode] = useState(null)
   const [pgnView, setpgnView] = useState("")    //string displayed inside pgn box
 
@@ -67,7 +67,7 @@ export default function Analysis() {
     setFen(game.fen())    //Triggers render with new position
     setOptionSquares([])  //after move is made we can clear possible moves for selected piece
 
-    return result        
+    return result   //actually optional
   }
 
   const moveBack = () => {
@@ -323,21 +323,21 @@ export default function Analysis() {
     }
     checkGame()
 
-    const newsavedMoves = []
+    const newbookMoves = []
     if(currentNode){
       for(const child of currentNode.children){
-        newsavedMoves.push(child.move)
+        newbookMoves.push(child.move)
       }
-      setsavedMoves(newsavedMoves)
+      setbookMoves(newbookMoves)
     }
     const possibleMoves = game.moves({ verbose: true })
     const arrowMoves = []
     possibleMoves.forEach(move => {   //changed from map
-      if(newsavedMoves.includes(move.san)){
+      if(newbookMoves.includes(move.san)){
         arrowMoves.push([move.from, move.to, 'orange'])
       }
     })
-    setmoveArrows(arrowMoves)
+    setbookMovesArrows(arrowMoves)
 
     if(user && moveTree && Object.keys(hashComments).length === 0){   //checks user and movetree to avoid unnecessary comments download
       console.log('download comments');
@@ -354,7 +354,7 @@ export default function Analysis() {
 
       <div className="leftPanel text-white">
         <div className="loadedMoves"> 
-          {savedMoves.map(elem => <p key={elem} style={{color : "white"}}>{elem}</p>)}
+          {bookMoves.map(elem => <p key={elem} style={{color : "white"}}>{elem}</p>)}
         </div>
 
         <div className="openings">
@@ -370,7 +370,7 @@ export default function Analysis() {
           onSquareClick={onSquareClick}
           onPieceDragBegin={onPieceDragBegin}
           customSquareStyles={optionSquares}    //available moves for clicked piece
-          customArrows={moveArrows}
+          customArrows={bookMovesArrows}
         />
 
         <div className="buttons">

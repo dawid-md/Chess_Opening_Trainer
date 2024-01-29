@@ -18,17 +18,17 @@ export default function Training() {
   const [orientation, setOrientation] = useState("white")
   const [fen, setFen] = useState(game.fen())  //fen of current position, setFen triggers board refresh
   const [optionSquares, setOptionSquares] = useState({})  //available moves for current piece clicked
-  const [moveFrom, setMoveFrom] = useState("")   //sets current clicked square (if legal move is possible from that square)
+  const [moveFrom, setMoveFrom] = useState(null)   //sets current clicked square (if legal move is possible from that square)
   const [hashComments, sethashComments] = useState({})
   const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""})
   const [openings, setOpenings] = useState([])    //opening downloaded from database
   const [openingID, setOpeningID] = useState([""])  //id of the current opening that is selected by user and edited
   const [openingName, setopeningName] = useState("")  //name chosed before saving 
   const [openingColor, setopeningColor] = useState("")  //name chosed before saving 
-  const [savedMoves, setsavedMoves] = useState([])    //saved moves that application suggests with arrows
-  const [moveArrows, setmoveArrows] = useState([])    //suggests saved moves
+  const [bookMoves, setbookMoves] = useState([])    //saved moves that application suggests with arrows
+  const [bookMovesArrows, setbookMovesArrows] = useState([])    //suggests saved moves
 
-  const [moveTree, setmoveTree] = useState(null)
+  const [moveTree, setmoveTree] = useState(null)  //main tree of all nodes (moves)
   const [currentNode, setcurrentNode] = useState(null)
   const [pgnView, setpgnView] = useState("")    //string displayed inside pgn box
 
@@ -53,29 +53,32 @@ export default function Training() {
       if(child.move === result.san){
         setcurrentNode(child)
         childFound = true
-        const newsavedMoves = []
+        const newbookMoves = []
           for(const child of currentNode.children){
-            newsavedMoves.push(child.move)
+            newbookMoves.push(child.move)
           }
-          setsavedMoves(newsavedMoves)
+          setbookMoves(newbookMoves)
         setFen(game.fen())    //Triggers render with new position
         break
       }
     }
     if(childFound === false){
-      game.undo()             //try to make the app to wait some time eg 200ms
-      const newsavedMoves = []
-      for(const child of currentNode.children){
-        newsavedMoves.push(child.move)
-      }
-      setsavedMoves(newsavedMoves)
-    }
+      setTimeout(() => {
 
+        game.undo()     
+        const newbookMoves = []
+        for(const child of currentNode.children){
+          newbookMoves.push(child.move)
+        }
+        setbookMoves(newbookMoves)
+
+      }, 5000)
+    }
     // setpgnView(treeToPGN(moveTree))
     //setFen(game.fen())    //Triggers render with new position
     setOptionSquares([])  //after move is made we can clear possible moves for selected piece
 
-    // return result        
+    return result        
   }
 
   const moveBack = () => {
@@ -103,8 +106,10 @@ export default function Training() {
       promotion: "q",
     }
     makeMove(move)
-    //const result = makeMove(move)
-    // return result !== null; //if result === null return false, else return true
+    setMoveFrom(null)
+    const result = makeMove(move)
+    //console.log(result);
+    return result !== null;   //if result === null return false, else return true
   }
 
   function checkGame(){
@@ -136,7 +141,6 @@ export default function Training() {
       const snapshot = await get(openingsRef)
       if(snapshot.exists()) {
         const data = snapshot.val()
-        console.log(data);
         const openingsArray = Object.keys(data).map(key => ({
           id: key,
           ...data[key]
@@ -226,15 +230,21 @@ export default function Training() {
   }
 
   function onSquareClick(square) {
-    if(optionSquares && Object.keys(optionSquares).length !== 0) {    //if this is the "drop piece" click to confirm the move
+    console.log(optionSquares[square]);
+    if(optionSquares && Object.keys(optionSquares).length !== 0 && optionSquares[square]) {    //if this is the "drop piece" click to confirm the move
+      console.log("go to ondrop");
       onDrop(moveFrom, square)
     }
-    else{
-      const hasOptions = getMoveOptions(square)
-      if (hasOptions) {
-        setMoveFrom(square)
-      }
-    }
+     else if(moveFrom != null){
+      setMoveFrom(square)
+      getMoveOptions(square)
+     }
+    // else{
+    //   const hasOptions = getMoveOptions(square) //getMoveOptions sets optionSquares
+    //   if (hasOptions) {
+    //     setMoveFrom(square)
+    //   }
+    // }
   }
 
   function onPieceDragBegin(piece, sourceSquare){
@@ -243,7 +253,7 @@ export default function Training() {
   }
 
   useEffect(() => {
-    console.log("rendered");
+    // console.log("rendered");
 
     if(moveTree == null){
       const rootNode = new treeNode('root')
@@ -252,25 +262,16 @@ export default function Training() {
     }
     checkGame() //for now it just loads the comment for the current position
 
-    const newsavedMoves = []
-    if(currentNode && newsavedMoves.length === 0){
+    const newbookMoves = []
+    if(currentNode && newbookMoves.length === 0){
       for(const child of currentNode.children){
-        newsavedMoves.push(child.move)
+        newbookMoves.push(child.move)
       }
-      setsavedMoves(newsavedMoves)
+      setbookMoves(newbookMoves)
     }
 
-    // const possibleMoves = game.moves({ verbose: true })
-    // const arrowMoves = []
-    // possibleMoves.forEach(move => {   //changed from map
-    //   if(newsavedMoves.includes(move.san)){
-    //     arrowMoves.push([move.from, move.to, 'orange'])
-    //   }
-    // })
-    // setmoveArrows(arrowMoves)
-
     if(user && moveTree && Object.keys(hashComments).length === 0){   //checks user and movetree to avoid unnecessary comments download
-      console.log('download comments');
+      //console.log('download comments');
       loadComment()
     }
 
@@ -282,7 +283,7 @@ export default function Training() {
       <div className="leftPanel text-white">
 
         <div className="loadedMoves"> 
-          {savedMoves.map(elem => <p key={elem} style={{color : "white"}}>{elem}</p>)}
+          {bookMoves.map(elem => <p key={elem} style={{color : "white"}}>{elem}</p>)}
         </div>
 
         <div className="openings">
@@ -299,7 +300,7 @@ export default function Training() {
           onSquareClick={onSquareClick}
           onPieceDragBegin={onPieceDragBegin}
           customSquareStyles={optionSquares}    //available moves for clicked piece
-          // customArrows={moveArrows}
+          // customArrows={bookMovesArrows}
         />
 
         <div className="buttons">
