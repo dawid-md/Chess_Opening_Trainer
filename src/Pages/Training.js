@@ -4,7 +4,6 @@ import { Chessboard } from "react-chessboard"
 import CommentBox from "../Components/CommentBox"
 import { treeNode } from "../treeNode"
 import { treeToPGN } from "../treeNodePgn"
-import { treeToJSON } from "../treeToJSON"
 import useSound from "use-sound"
 import moveSound from "../Sounds/Move.mp3"
 import captureSound from "../Sounds/Capture.mp3"
@@ -63,19 +62,14 @@ export default function Training() {
       }
     }
     if(childFound === false){
-      setTimeout(() => {
-
         game.undo()     
         const newbookMoves = []
         for(const child of currentNode.children){
           newbookMoves.push(child.move)
         }
         setbookMoves(newbookMoves)
-
-      }, 5000)
+        console.log(newbookMoves);
     }
-    // setpgnView(treeToPGN(moveTree))
-    //setFen(game.fen())    //Triggers render with new position
     setOptionSquares([])  //after move is made we can clear possible moves for selected piece
 
     return result        
@@ -99,28 +93,15 @@ export default function Training() {
     }
   }
 
-  function onDrop(sourceSquare, targetSquare) {
+  function onDrop(sourceSquare, targetSquare) { 
     const move = {
       from: sourceSquare,
       to: targetSquare,
       promotion: "q",
     }
-    makeMove(move)
     setMoveFrom(null)
-    const result = makeMove(move)
-    //console.log(result);
+    const result = makeMove(move)  //maybe move made is need in order to get san result
     return result !== null;   //if result === null return false, else return true
-  }
-
-  function checkGame(){
-    const fenPositionOnly = fen.split(' ').slice(0, 4).join(' ')  //remove last part of fen to enable transposition
-    let loadedComment = hashComments[fenPositionOnly]?.comment
-    let loadedCommentID = hashComments[fenPositionOnly]?.commentID
-    setComment({
-      position: fen,
-      comment: loadedComment || "",
-      commentID: loadedCommentID || ""
-    })
   }
 
   function resetPosition(){
@@ -156,7 +137,7 @@ export default function Training() {
 
   function selectOpening(id){
     const rootNode = openings.find(opening => opening.id === id)
-    let tree = jsonToTree(rootNode)  //convert json to tree
+    let tree = jsonToTree(rootNode)  //convert flat json to tree
     game.reset()          //resets game to the starting position
     setFen(game.fen())    //Triggers render with new position
     setOpeningID(id)      //id of selected opening by user
@@ -182,33 +163,6 @@ export default function Training() {
     return processNode(rootId)    //Start the recursive processing with the root ID
   }
 
-  async function loadComment(){
-    const db = getDatabase()
-    const commentsRef = ref(db, 'Comments')
-    const hashComments = {}
-  
-    try {
-      const snapshot = await get(commentsRef)
-      if (snapshot.exists()) {
-        const data = snapshot.val()
-        for(const key in data){
-          const keyPos = data[key]["position"].split(' ').slice(0, 4).join(' ') //don't include last part of fen
-          if(!hashComments[keyPos]){
-            hashComments[keyPos] = {
-              "comment" : data[key]["comment"],
-              "commentID" : key
-            }
-          }
-        }
-      } else {
-        console.log("No comments available")
-      }
-      sethashComments(hashComments)
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
   function getMoveOptions(square) {
     const moves = game.moves({
       square,
@@ -230,21 +184,13 @@ export default function Training() {
   }
 
   function onSquareClick(square) {
-    console.log(optionSquares[square]);
     if(optionSquares && Object.keys(optionSquares).length !== 0 && optionSquares[square]) {    //if this is the "drop piece" click to confirm the move
-      console.log("go to ondrop");
       onDrop(moveFrom, square)
     }
-     else if(moveFrom != null){
+    else{
       setMoveFrom(square)
       getMoveOptions(square)
-     }
-    // else{
-    //   const hasOptions = getMoveOptions(square) //getMoveOptions sets optionSquares
-    //   if (hasOptions) {
-    //     setMoveFrom(square)
-    //   }
-    // }
+    }
   }
 
   function onPieceDragBegin(piece, sourceSquare){
@@ -253,14 +199,12 @@ export default function Training() {
   }
 
   useEffect(() => {
-    // console.log("rendered");
-
     if(moveTree == null){
       const rootNode = new treeNode('root')
       setmoveTree(rootNode)
       setcurrentNode(rootNode)
     }
-    checkGame() //for now it just loads the comment for the current position
+    //checkGame() //for now it just loads the comment for the current position
 
     const newbookMoves = []
     if(currentNode && newbookMoves.length === 0){
@@ -271,11 +215,10 @@ export default function Training() {
     }
 
     if(user && moveTree && Object.keys(hashComments).length === 0){   //checks user and movetree to avoid unnecessary comments download
-      //console.log('download comments');
-      loadComment()
+      getOpenings()
     }
 
-  }, [fen, hashComments, currentNode])
+  }, [fen, currentNode])
 
   return (
     <div className="mainDiv">
@@ -324,9 +267,6 @@ export default function Training() {
         </div>
         
         <div className="commentButtons text-center">
-          {/* <button className="btn btn-light btn-sm mx-2" onClick={saveComment}>Save</button> */}
-          {/* <button className="btn btn-light btn-sm" onClick={loadComment}>Load</button> */}
-          {/* <button className="btn btn-light btn-sm mx-2" onClick={deleteComment}>Delete</button> */}
         </div>
 
       </div>
