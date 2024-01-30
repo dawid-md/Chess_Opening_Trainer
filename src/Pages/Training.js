@@ -7,7 +7,7 @@ import { treeToPGN } from "../treeNodePgn"
 import useSound from "use-sound"
 import moveSound from "../Sounds/Move.mp3"
 import captureSound from "../Sounds/Capture.mp3"
-import { getDatabase, ref, get, push, remove, update, query, orderByChild, equalTo } from 'firebase/database'
+import { getDatabase, ref, get, push, remove, update, query, orderByChild, equalTo, child } from 'firebase/database'
 import { app } from "../Config/firebase"  //this is important, don't comment it out
 import { AuthContext } from "../App"
 
@@ -35,43 +35,29 @@ export default function Training() {
   const [playCaptureSound] = useSound(captureSound)
 
   const makeMove = (move) => {
-    const possibleMoves = game.moves({ verbose: true })
+    const possibleMoves = game.moves({ verbose: true }) //verbose true means to add ALSO "from - to" syntax of moves
     const isMovePossible = possibleMoves.some(possibleMove => possibleMove.from === move.from && possibleMove.to === move.to)
     if (!isMovePossible) return null
 
     const result = game.move(move)     //makes changes to main game object
-    if (result === null) return null
+    if (result === null) return null  //it is probably optional since there is no chance to make incorrect move
 
     if(result.san.includes('x')){     //playing sounds on moves
       playCaptureSound()
     } else{
         playMoveSound()}
 
-    let childFound = false
-    for(const child of currentNode.children){
-      if(child.move === result.san){
-        setcurrentNode(child)
-        childFound = true
-        const newbookMoves = []
-          for(const child of currentNode.children){
-            newbookMoves.push(child.move)
-          }
-          setbookMoves(newbookMoves)
-        setFen(game.fen())    //Triggers render with new position
-        break
-      }
+    let childBookMoveFound = currentNode.children.find((child) => child.move === result.san)
+    if(childBookMoveFound){
+      setcurrentNode(childBookMoveFound)
+      const newbookMoves = childBookMoveFound.children.map(child => child.move)
+      setbookMoves(newbookMoves)
+      setFen(game.fen())    //Triggers render with new position
+    }else{
+      game.undo()     
     }
-    if(childFound === false){
-        game.undo()     
-        const newbookMoves = []
-        for(const child of currentNode.children){
-          newbookMoves.push(child.move)
-        }
-        setbookMoves(newbookMoves)
-        console.log(newbookMoves);
-    }
-    setOptionSquares([])  //after move is made we can clear possible moves for selected piece
 
+    setOptionSquares([])  //after move is made we can clear possible moves for selected piece
     return result        
   }
 
@@ -99,9 +85,9 @@ export default function Training() {
       to: targetSquare,
       promotion: "q",
     }
-    setMoveFrom(null)
+    setMoveFrom(null)               //move is made so it should be reset
     const result = makeMove(move)  //maybe move made is need in order to get san result
-    return result !== null;   //if result === null return false, else return true
+    return result !== null;       //if result === null return false, else return true
   }
 
   function resetPosition(){
@@ -214,8 +200,9 @@ export default function Training() {
       setbookMoves(newbookMoves)
     }
 
-    if(user && moveTree && Object.keys(hashComments).length === 0){   //checks user and movetree to avoid unnecessary comments download
+    if(user && openings.length === 0 && moveTree && Object.keys(hashComments).length === 0 ){   //checks user and movetree to avoid unnecessary comments download
       getOpenings()
+      console.log('loaded openings');
     }
 
   }, [fen, currentNode])
