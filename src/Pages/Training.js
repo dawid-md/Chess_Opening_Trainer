@@ -31,34 +31,39 @@ export default function Training() {
   const [currentNode, setcurrentNode] = useState(null)
   const [pgnView, setpgnView] = useState("")    //string displayed inside pgn box
 
+  const [trainingUserColor, setTrainingUserColor] = useState('white')
+  const [trainingType, setTrainingType] = useState('standard')
+
   const [playMoveSound] = useSound(moveSound)
   const [playCaptureSound] = useSound(captureSound)
 
-  const makeMove = (move) => {
+  const makeMove = (move, currentNodeParameter = currentNode) => {
     const possibleMoves = game.moves({ verbose: true }) //verbose true means to add ALSO "from - to" syntax of moves
     const isMovePossible = possibleMoves.some(possibleMove => possibleMove.from === move.from && possibleMove.to === move.to)
     if (!isMovePossible) return null
 
     const result = game.move(move)     //makes changes to main game object
-    if (result === null) return null  //it is probably optional since there is no chance to make incorrect move
+    if (result === null) return null  //it is probably optional since there is no chance to make incorrect move => ?
 
     if(result.san.includes('x')){     //playing sounds on moves
       playCaptureSound()
     } else{
         playMoveSound()}
 
-    let childBookMoveFound = currentNode.children.find((child) => child.move === result.san)
+    let childBookMoveFound = currentNodeParameter.children.find((child) => child.move === result.san)  //check if user move is the book move
     if(childBookMoveFound){
+      setFen(game.fen())    //Triggers render with new position
       setcurrentNode(childBookMoveFound)
       const newbookMoves = childBookMoveFound.children.map(child => child.move)
       setbookMoves(newbookMoves)
-      setFen(game.fen())    //Triggers render with new position
-    }else{
-      game.undo()     
-    }
-
-    setOptionSquares([])  //after move is made we can clear possible moves for selected piece
-    return result        
+      if(currentNodeParameter.children.length > 0){
+        game.move(currentNodeParameter.children[0].move)   //first child is always the main line
+        //setFen(game.fen())
+        //setcurrentNode(currentNodeParameter.children[0])   //there is no need to update main tree
+      }
+    }else{   
+      return false
+    }       
   }
 
   const moveBack = () => {
@@ -85,9 +90,20 @@ export default function Training() {
       to: targetSquare,
       promotion: "q",
     }
-    setMoveFrom(null)               //move is made so it should be reset
+    setMoveFrom(null)                //move is made so it should be reset
+    setOptionSquares([])            //after move is made we can hide possible moves for selected piece
     const result = makeMove(move)  //maybe move made is need in order to get san result
+    if(result === false){
+      game.undo()
+    }
+    // else if(result === true){
+    //   chooseTrainingMove()
+    // }
     return result !== null;       //if result === null return false, else return true
+  }
+
+  const chooseTrainingMove = () => {
+    console.log(bookMoves);
   }
 
   function resetPosition(){
@@ -205,7 +221,7 @@ export default function Training() {
       console.log('loaded openings');
     }
 
-  }, [fen, currentNode])
+  }, [fen, currentNode, game])
 
   return (
     <div className="mainDiv">
