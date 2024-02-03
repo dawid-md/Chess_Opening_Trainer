@@ -37,33 +37,42 @@ export default function Training() {
   const [playMoveSound] = useSound(moveSound)
   const [playCaptureSound] = useSound(captureSound)
 
-  const makeMove = (move, currentNodeParameter = currentNode) => {
+  const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true }) //verbose true means to add ALSO "from - to" syntax of moves
     const isMovePossible = possibleMoves.some(possibleMove => possibleMove.from === move.from && possibleMove.to === move.to)
     if (!isMovePossible) return null
 
     const result = game.move(move)     //makes changes to main game object
     if (result === null) return null  //it is probably optional since there is no chance to make incorrect move => ?
+    MoveSound(result)
 
-    if(result.san.includes('x')){     //playing sounds on moves
-      playCaptureSound()
-    } else{
-        playMoveSound()}
-
-    let childBookMoveFound = currentNodeParameter.children.find((child) => child.move === result.san)  //check if user move is the book move
+    let childBookMoveFound = currentNode.children.find((child) => child.move === result.san)  //check if user move is the book move
     if(childBookMoveFound){
       setFen(game.fen())    //Triggers render with new position
       setcurrentNode(childBookMoveFound)
-      const newbookMoves = childBookMoveFound.children.map(child => child.move)
-      setbookMoves(newbookMoves)
-      if(currentNodeParameter.children.length > 0){
-        game.move(currentNodeParameter.children[0].move)   //first child is always the main line
-        //setFen(game.fen())
-        //setcurrentNode(currentNodeParameter.children[0])   //there is no need to update main tree
+      if(childBookMoveFound.children.length > 0){
+        setTimeout(() => {
+          const result2 = game.move(childBookMoveFound.children[Math.floor(Math.random() * childBookMoveFound.children.length-1) + 1].move)   //first child is always the main line
+          setFen(game.fen())
+          setcurrentNode(childBookMoveFound.children[0])   //there is no need to update main tree
+          MoveSound(result2)
+          return result2
+        }, 300)
       }
     }else{   
+      game.undo()
       return false
     }       
+  }
+
+  const MoveSound = (result) => {
+    if(result.san.includes('x')){     //playing sounds on moves
+      playCaptureSound()
+    } else if(result.san){
+      playMoveSound()
+    } else {
+      
+    }
   }
 
   const moveBack = () => {
@@ -93,9 +102,9 @@ export default function Training() {
     setMoveFrom(null)                //move is made so it should be reset
     setOptionSquares([])            //after move is made we can hide possible moves for selected piece
     const result = makeMove(move)  //maybe move made is need in order to get san result
-    if(result === false){
-      game.undo()
-    }
+    // if(result === false){
+    //   game.undo()
+    // }
     // else if(result === true){
     //   chooseTrainingMove()
     // }
@@ -206,8 +215,6 @@ export default function Training() {
       setmoveTree(rootNode)
       setcurrentNode(rootNode)
     }
-    //checkGame() //for now it just loads the comment for the current position
-
     const newbookMoves = []
     if(currentNode && newbookMoves.length === 0){
       for(const child of currentNode.children){
@@ -221,7 +228,7 @@ export default function Training() {
       console.log('loaded openings');
     }
 
-  }, [fen, currentNode, game])
+  }, [fen, currentNode])  //should check if it affects the animation
 
   return (
     <div className="mainDiv">

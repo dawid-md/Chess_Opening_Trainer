@@ -55,7 +55,7 @@ export default function PlayRandomMoveEngine() {
     const result = makeMove(move);
     if (result === null) return false;  // illegal move
 
-    if (result) setTimeout(makeRandomMove, 100); // If move was successful, schedule the random move.
+    if (result) setTimeout(makeRandomMove, 1000); // If move was successful, schedule the random move.
     return true;
   }
 
