@@ -7,6 +7,7 @@ import { treeToPGN } from "../treeNodePgn"
 import useSound from "use-sound"
 import moveSound from "../Sounds/Move.mp3"
 import captureSound from "../Sounds/Capture.mp3"
+import errorSound from "../Sounds/Error.mp3"
 import { getDatabase, ref, get, push, remove, update, query, orderByChild, equalTo, child } from 'firebase/database'
 import { app } from "../Config/firebase"  //this is important, don't comment it out
 import { AuthContext } from "../App"
@@ -36,6 +37,7 @@ export default function Training() {
 
   const [playMoveSound] = useSound(moveSound)
   const [playCaptureSound] = useSound(captureSound)
+  const [playErrorSound] = useSound(errorSound)
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true }) //verbose true means to add ALSO "from - to" syntax of moves
@@ -44,10 +46,11 @@ export default function Training() {
 
     const result = game.move(move)     //makes changes to main game object
     if (result === null) return null  //it is probably optional since there is no chance to make incorrect move => ?
-    MoveSound(result)
+    // MoveSound(result)
 
     let childBookMoveFound = currentNode.children.find((child) => child.move === result.san)  //check if user move is the book move
     if(childBookMoveFound){
+      MoveSound(result)
       setFen(game.fen())    //Triggers render with new position
       setcurrentNode(childBookMoveFound)
       if(childBookMoveFound.children.length > 0){
@@ -60,6 +63,7 @@ export default function Training() {
         }, 300)
       }
     }else{   
+      playErrorSound()
       game.undo()
       return false
     }       
@@ -68,10 +72,8 @@ export default function Training() {
   const MoveSound = (result) => {
     if(result.san.includes('x')){     //playing sounds on moves
       playCaptureSound()
-    } else if(result.san){
-      playMoveSound()
     } else {
-      
+      playMoveSound()
     }
   }
 

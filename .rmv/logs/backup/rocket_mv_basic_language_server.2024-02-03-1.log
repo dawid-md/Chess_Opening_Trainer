@@ -1,0 +1,2 @@
+2024-02-03 00:11:47.554 [pool-3-thread-1] INFO  com.rs.mv.mvvs.client.catalog.from.scan.CurrentPathScanner - [client:400205]scan file in current open file directory(C:/Users/Dawid/Desktop/Opening_Trainer/opening_trainer/src/Pages)
+2024-02-03 00:27:37.712 [pool-3-thread-1] INFO  com.rs.mv.mvvs.client.catalog.from.scan.CurrentPathScanner - [client:400205]scan file in current open file directory(C:/Users/Dawid/Desktop/Opening_Trainer/opening_trainer/src/Pages)
