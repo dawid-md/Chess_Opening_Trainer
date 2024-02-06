@@ -40,32 +40,25 @@ export default function Training() {
   const [playErrorSound] = useSound(errorSound)
 
   const makeMove = (move) => {
-    const possibleMoves = game.moves({ verbose: true }) //verbose true means to add ALSO "from - to" syntax of moves
-    const isMovePossible = possibleMoves.some(possibleMove => possibleMove.from === move.from && possibleMove.to === move.to)
-    if (!isMovePossible) return null
-
     const result = game.move(move)     //makes changes to main game object
-    if (result === null) return null  //it is probably optional since there is no chance to make incorrect move => ?
-    // MoveSound(result)
-
     let childBookMoveFound = currentNode.children.find((child) => child.move === result.san)  //check if user move is the book move
     if(childBookMoveFound){
       MoveSound(result)
       setFen(game.fen())    //Triggers render with new position
-      setcurrentNode(childBookMoveFound)
-      if(childBookMoveFound.children.length > 0){
+      setcurrentNode(childBookMoveFound)  //set found node as the main node
+      if(childBookMoveFound.children.length > 0){  //if new main node has children then pick the random one
         setTimeout(() => {
-          const result2 = game.move(childBookMoveFound.children[Math.floor(Math.random() * childBookMoveFound.children.length-1) + 1].move)   //first child is always the main line
-          setFen(game.fen())
-          setcurrentNode(childBookMoveFound.children[0])   //there is no need to update main tree
-          MoveSound(result2)
-          return result2
+          const randomChild = Math.floor(Math.random() * childBookMoveFound.children.length-1) + 1
+          const result = game.move(childBookMoveFound.children[randomChild].move)   //first child is always the main line
+          setFen(game.fen())  //Triggers render with new position
+          setcurrentNode(childBookMoveFound.children[randomChild])   //!!!!!!need to check that, why the 0 child is set if we use random child in previous step?
+          MoveSound(result)
         }, 300)
       }
-    }else{   
+    }else{   //if played move is not the book move
       playErrorSound()
       game.undo()
-      return false
+      //return false
     }       
   }
 
@@ -80,16 +73,16 @@ export default function Training() {
   const moveBack = () => {
     const move = game.undo()
     if(move) {
-      setFen(game.fen())
-      if(currentNode.parent != null){
-        setcurrentNode(currentNode.parent)    //prevents error when stated on root
+      setFen(game.fen())    
+      if(currentNode.parent != null){   //prevents error when stated on root
+        setcurrentNode(currentNode.parent)    
       }
     }
   }
 
   const moveForward = () => {
     if(currentNode.children.length > 0){
-      game.move(currentNode.children[0].move)   //first child is always the main line
+      game.move(currentNode.children[0].move)   //first child is always the main line - need to improve that
       setFen(game.fen())
       setcurrentNode(currentNode.children[0])   //there is no need to update main tree
     }
@@ -101,26 +94,30 @@ export default function Training() {
       to: targetSquare,
       promotion: "q",
     }
-    setMoveFrom(null)                //move is made so it should be reset
+    const possibleMoves = game.moves({ verbose: true })   //verbose true means to add ALSO "from - to" syntax of moves
+    const isMovePossible = possibleMoves.some(possibleMove => possibleMove.from === move.from && possibleMove.to === move.to)
+    setMoveFrom(null)                //move is made so it should be reset anyway
     setOptionSquares([])            //after move is made we can hide possible moves for selected piece
-    const result = makeMove(move)  //maybe move made is need in order to get san result
-    // if(result === false){
-    //   game.undo()
-    // }
-    // else if(result === true){
-    //   chooseTrainingMove()
-    // }
+    const result = isMovePossible ? makeMove(move) : null  //maybe move made is need in order to get san result
     return result !== null;       //if result === null return false, else return true
   }
 
   const chooseTrainingMove = () => {
-    console.log(bookMoves);
+    if(currentNode.children.length > 0){
+      setTimeout(() => {
+        const randomChild = Math.floor(Math.random() * currentNode.children.length-1) + 1
+        const result2 = game.move(currentNode.children[randomChild].move)   //first child is always the main line
+        setFen(game.fen())
+        setcurrentNode(currentNode.children[randomChild])   //!!!!!!need to check that, why the 0 child is set if we use random child in previous step?
+        MoveSound(result2)
+      }, 300)
+    }
   }
 
   function resetPosition(){
     game.reset()
     setFen(game.fen())    //Triggers render with new position
-    const newTreeNode = new treeNode('root')
+    const newTreeNode = new treeNode('root')  //creates new blank root with starting position
     setmoveTree(newTreeNode)
     setcurrentNode(newTreeNode)
     setOpeningID("")
@@ -219,7 +216,7 @@ export default function Training() {
     }
     const newbookMoves = []
     if(currentNode && newbookMoves.length === 0){
-      for(const child of currentNode.children){
+      for(const child of currentNode.children){ //all nodes have empty child as default set in 'new treeNode('root')'
         newbookMoves.push(child.move)
       }
       setbookMoves(newbookMoves)
@@ -230,7 +227,7 @@ export default function Training() {
       console.log('loaded openings');
     }
 
-  }, [fen, currentNode])  //should check if it affects the animation
+  }, [fen, currentNode, openingID])  //should check how it affects animations
 
   return (
     <div className="mainDiv">

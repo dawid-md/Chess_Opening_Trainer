@@ -9,7 +9,6 @@ export class treeNode {
         }
         this.children = [];
     }
-
     addChild(node) {
         node.parent = this;
         this.children.push(node);
