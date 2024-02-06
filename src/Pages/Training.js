@@ -154,6 +154,19 @@ export default function Training() {
     setmoveTree(tree)
     setcurrentNode(tree)
     setpgnView(treeToPGN(tree))
+
+    if(trainingUserColor === "black"){  //make the first move for white cpu
+      setOrientation("black")
+      setTimeout(() => {
+        const randomChild = Math.floor(Math.random() * tree.children.length-1) + 1
+        const result = game.move(tree.children[randomChild].move)   //first child is always the main line
+        setFen(game.fen())  //Triggers render with new position
+        setcurrentNode(tree.children[randomChild])
+        MoveSound(result)
+      }, 500)
+    } else{
+      setOrientation("white")
+    }
   }
 
   function jsonToTree(flatJson) {
@@ -208,6 +221,14 @@ export default function Training() {
     if (hasOptions) {setMoveFrom(sourceSquare)}
   }
 
+  const switchColor = () => {
+    if(trainingUserColor === "white"){
+      setTrainingUserColor("black")
+    } else{
+      setTrainingUserColor("white")
+    }
+  }
+
   useEffect(() => {
     if(moveTree == null){
       const rootNode = new treeNode('root')
@@ -252,7 +273,7 @@ export default function Training() {
           onSquareClick={onSquareClick}
           onPieceDragBegin={onPieceDragBegin}
           customSquareStyles={optionSquares}    //available moves for clicked piece
-          // customArrows={bookMovesArrows}
+          customArrows={bookMovesArrows}
         />
 
         <div className="buttons">
@@ -261,7 +282,7 @@ export default function Training() {
           <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}>Reset</button>
           <button className="btn btn-light btn-sm mx-1" onClick={() => {setOrientation(prevOrientation => (prevOrientation === "white" ? "black" : "white"))}}>Flip Board</button>
           <button className="btn btn-light btn-sm mx-1" onClick={getOpenings}>Openings</button>
-          {/* <button className="btn btn-light btn-sm mx-1" onClick={downloadtreeJSON}>Load</button> */}
+          <button className="btn btn-light btn-sm mx-1" onClick={switchColor}>{trainingUserColor}</button>
         </div>
       </div>
       

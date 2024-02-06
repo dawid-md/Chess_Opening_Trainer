@@ -313,6 +313,16 @@ export default function Analysis() {
     if(event.key === "ArrowLeft"){moveBack()}
   }
 
+  function deleteMove(){
+    const parentNode = currentNode.parent
+    const index = currentNode.parent.children.findIndex(child => child.move === currentNode.move)
+    currentNode.parent.children.splice(index, 1)
+    game.undo()
+    setFen(game.fen())
+    setcurrentNode(parentNode)
+    setpgnView(treeToPGN(moveTree))
+  }
+
   useEffect(() => {
     console.log("rendered");
 
@@ -381,6 +391,7 @@ export default function Analysis() {
           <button className="btn btn-light btn-sm mx-1" onClick={saveOpening}>Save</button>
           <button className="btn btn-light btn-sm mx-1" data-bs-toggle="modal" data-bs-target="#myModal">Save As</button>
           <button className="btn btn-light btn-sm mx-1" onClick={getOpenings}>Openings</button>
+          <button className="btn btn-light btn-sm mx-1" onClick={deleteMove}>Delete Move</button>
           {/* <button className="btn btn-light btn-sm mx-1" onClick={downloadtreeJSON}>Load</button> */}
         </div>
       </div>
