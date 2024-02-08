@@ -1,5 +1,52 @@
 .bg-dark, body{
     background-color: #181818 !important;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.text-white{
+    color: white;
+}
+
+.custom-navbar {
+    background-color: #343a40; 
+    color: white;
+    padding: 1rem 0;
+}
+
+.container {
+    width: 90%;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.brand-logo {
+    color: white;
+    text-decoration: none;
+}
+
+.brand-highlight {
+    color: #ffc107; /* Bootstrap's "warning" color */
+}
+
+.nav-collapse {
+    display: flex;
+}
+
+.nav-items {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+}
+
+.board-container{
+    width: 75%;
 }
 
 .mainDiv{
@@ -27,11 +74,6 @@
     min-height: 257px !important;
 }
 
-.leftPanel{
-    /* width: 300px;
-    height: 200px; */
-}
-
 .loadedMoves, .openings{
     width: 300px;
     height: 257px;
@@ -46,15 +88,6 @@
     border-color: rgb(99, 99, 99);
 }
 
-/* div[data-square="d2"] {
-    background-color: aqua !important;
-} */
-
-/* .boardDiv{
-    width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-} */
 .openings, .loadedMoves{
     padding: 10px;
 }
@@ -63,6 +96,7 @@
     margin-top: 0;
     margin-bottom: 0;
 }
+
 .openings p:hover{
     cursor: pointer;
     background-color: gray;
@@ -79,4 +113,9 @@ img{
 p{
     margin-bottom: 0 !important;
     margin-top: 10px !important;
+}
+
+.userOpening{
+    display: flex;
+    align-items: center;
 }

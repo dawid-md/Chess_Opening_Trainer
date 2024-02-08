@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useMemo, useState } from "react"
 import { Chess } from "chess.js"
 import { Chessboard } from "react-chessboard"
 import CommentBox from "../Components/CommentBox"
@@ -15,12 +15,12 @@ import { ArrowClockwise, ArrowDownUp, ArrowLeft, ArrowRepeat, ArrowRight } from 
 
 export default function Analysis() {
   const {user} = useContext(AuthContext)
-  const [game] = useState(new Chess())  //main representation of the board
+  const game = useMemo(() => new Chess(), [])  //main representation of the board
   const [orientation, setOrientation] = useState("white")
   const [fen, setFen] = useState(game.fen())  //fen of current position, setFen triggers board refresh
   const [optionSquares, setOptionSquares] = useState({})  //available moves for current piece clicked
   const [moveFrom, setMoveFrom] = useState("")   //sets current clicked square (if legal move is possible from that square)
-  const [hashComments, sethashComments] = useState({})
+  const [hashComments, setHashComments] = useState({})
   const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""})
   const [openings, setOpenings] = useState([])    //opening downloaded from database
   const [openingID, setOpeningID] = useState([""])  //id of the current opening that is selected by user and edited
@@ -119,7 +119,7 @@ export default function Analysis() {
     setcurrentNode(newTreeNode)
     setOpeningID("")
     setpgnView("")
-    sethashComments({})
+    setHashComments({})
   }
 
   const saveOpening = async () => {      //upload opening tree json to database
@@ -218,7 +218,7 @@ export default function Analysis() {
       } else {
         console.log("No comments available")
       }
-      sethashComments(hashComments)
+      setHashComments(hashComments)
     } catch (error) {
       console.log(error)
     }

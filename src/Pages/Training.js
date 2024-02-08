@@ -253,19 +253,25 @@ export default function Training() {
   return (
     <div className="mainDiv">
 
-      <div className="leftPanel text-white">
+      <div className="leftPanel">
 
         <div className="loadedMoves"> 
           {bookMoves.map(elem => <p key={elem} style={{color : "white"}}>{elem}</p>)}
         </div>
 
-        <div className="openings">
+        <div className="openings text-white">
           <h5>Select Opening</h5>
-          {openings.map((item, index) => <p id={item.id} key={index} onClick={() => selectOpening(item.id)}>{item.name}</p>)}
+          {openings.map((item, index) => (
+          <div key={index} className="userOpening">
+            <p style={{height: '10px', width: '10px', 
+                      borderRadius: '50%', marginRight: '7px',
+                      backgroundColor: item.color, border: '1px solid gray'}}></p> 
+            <p id={item.id} key={index} onClick={() => selectOpening(item.id)}>{item.name}</p>
+          </div>))}
         </div>
       </div>
 
-      <div className="w-75">
+      <div className="board-container">
         <Chessboard 
           position={fen} 
           boardOrientation={orientation}
@@ -277,12 +283,12 @@ export default function Training() {
         />
 
         <div className="buttons">
-          <button className="btn btn-light btn-sm mx-1" onClick={moveBack}>Undo</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={moveForward}>Next</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}>Reset</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={() => {setOrientation(prevOrientation => (prevOrientation === "white" ? "black" : "white"))}}>Flip Board</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={getOpenings}>Openings</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={switchColor}>{trainingUserColor}</button>
+          <button className="btn-light" onClick={moveBack}>Undo</button>
+          <button className="btn-light" onClick={moveForward}>Next</button>
+          <button className="btn-light" onClick={resetPosition}>Reset</button>
+          <button className="btn-light" onClick={() => {setOrientation(prevOrientation => (prevOrientation === "white" ? "black" : "white"))}}>Flip Board</button>
+          <button className="btn-light" onClick={getOpenings}>Openings</button>
+          <button className={`btn-light ${openingID ? 'disabled' : ''}`} onClick={switchColor}>{trainingUserColor}</button>
         </div>
       </div>
       
