@@ -61,7 +61,7 @@ export default function PlayRandomMoveEngine() {
 
   return(
   <div className="mainDiv">
-    <div className="w-50">
+    <div className="board-container">
       <Chessboard 
         position={game.fen()} 
         onPieceDrop={onDrop} 

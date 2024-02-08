@@ -362,7 +362,7 @@ export default function Analysis() {
   return (
     <div className="mainDiv">
 
-      <div className="leftPanel text-white">
+      <div className="leftPanel">
         <div className="loadedMoves"> 
           {bookMoves.map(elem => <p key={elem} style={{color : "white"}}>{elem}</p>)}
         </div>
@@ -372,7 +372,7 @@ export default function Analysis() {
         </div>
       </div>
 
-      <div className="w-75">
+      <div className="board-container">
         <Chessboard 
           position={fen} 
           boardOrientation={orientation}
@@ -384,21 +384,21 @@ export default function Analysis() {
         />
 
         <div className="buttons">
-          <button className="btn btn-light btn-sm mx-1" onClick={moveBack}><ArrowLeft /></button>
-          <button className="btn btn-light btn-sm mx-1" onClick={moveForward}><ArrowRight /></button>
-          <button className="btn btn-light btn-sm mx-1" onClick={() => {setOrientation(prevOrientation => (prevOrientation === "white" ? "black" : "white"))}}><ArrowDownUp /></button>
-          <button className="btn btn-light btn-sm mx-1" onClick={resetPosition}><ArrowClockwise /></button>
-          <button className="btn btn-light btn-sm mx-1" onClick={saveOpening}>Save</button>
-          <button className="btn btn-light btn-sm mx-1" data-bs-toggle="modal" data-bs-target="#myModal">Save As</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={getOpenings}>Openings</button>
-          <button className="btn btn-light btn-sm mx-1" onClick={deleteMove}>Delete Move</button>
+          <button className="btn-light" onClick={moveForward}><ArrowRight /></button>
+          <button className="btn-light" onClick={moveBack}><ArrowLeft /></button>
+          <button className="btn-light" onClick={() => {setOrientation(prevOrientation => (prevOrientation === "white" ? "black" : "white"))}}><ArrowDownUp /></button>
+          <button className="btn-light" onClick={resetPosition}><ArrowClockwise /></button>
+          <button className="btn-light" onClick={saveOpening}>Save</button>
+          <button className="btn-light" data-bs-toggle="modal" data-bs-target="#myModal">Save As</button>
+          <button className="btn-light" onClick={getOpenings}>Openings</button>
+          <button className="btn-light" onClick={deleteMove}>Delete Move</button>
           {/* <button className="btn btn-light btn-sm mx-1" onClick={downloadtreeJSON}>Load</button> */}
         </div>
       </div>
       
       <div className="rightpanel">
 
-        <div className="moveMades text-white">
+        <div className="moveMades">
           <p>{pgnView}</p>
         </div>
 
@@ -406,15 +406,15 @@ export default function Analysis() {
           <CommentBox comment={comment} setComment={setComment} position={fen} />
         </div>
         
-        <div className="commentButtons text-center">
-          <button className="btn btn-light btn-sm mx-2" onClick={saveComment}>Save</button>
-          <button className="btn btn-light btn-sm" onClick={loadComment}>Load</button>
-          <button className="btn btn-light btn-sm mx-2" onClick={deleteComment}>Delete</button>
+        <div className="commentButtons">
+          <button className="btn-light" onClick={saveComment}>Save</button>
+          <button className="btn-light" onClick={loadComment}>Load</button>
+          <button className="btn-light" onClick={deleteComment}>Delete</button>
         </div>
 
       </div>
 
-      <div className="modal" id="myModal" tabIndex="-1">
+      {/* <div className="modal" id="myModal" tabIndex="-1">
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
@@ -424,21 +424,20 @@ export default function Analysis() {
             <div className="modal-body">
               <p>Name</p>
               <input type="text" onChange={changeopeningName} className="form-control" placeholder="Opening Name"/>
-              {/* <input type="text" onChange={changeopeningColor} className="form-control" placeholder="Opening Color"/> */}
               <p>Color</p>
-              <select onChange={changeopeningColor} className="form-control mt-2">
+              <select onChange={changeopeningColor} className="form-control">
                 <option value="both">Both</option>
                 <option value="white">White</option>
                 <option value="black">Black</option>
               </select>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" className="btn btn-primary" data-bs-dismiss="modal" onClick={saveOpening}>Save</button>
+              <button type="button" className="btn-light" data-bs-dismiss="modal">Close</button>
+              <button type="button" className="btn-light" data-bs-dismiss="modal" onClick={saveOpening}>Save</button>
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
     </div>
   )

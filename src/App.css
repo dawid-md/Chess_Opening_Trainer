@@ -1,49 +1,55 @@
 .bg-dark, body{
-    background-color: #181818 !important;
+    background-color: #181818;
     font-family: Arial, Helvetica, sans-serif;
-}
-
-.text-white{
     color: white;
 }
 
-.custom-navbar {
-    background-color: #343a40; 
-    color: white;
-    padding: 1rem 0;
-}
-
-.container {
-    width: 90%;
+/*----------------------------------navbar-----------*/
+.custom-navbar { 
+    padding: 1.2rem 4rem;
+    width: 100%;
     margin: auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-
-.brand-logo {
+.brand-name1{
     color: white;
     text-decoration: none;
 }
-
-.brand-highlight {
+.brand-name2 {
     color: #ffc107; /* Bootstrap's "warning" color */
 }
-
-.nav-collapse {
-    display: flex;
-}
-
 .nav-items {
     list-style: none;
     display: flex;
-    gap: 20px;
+    gap: 1.2rem;
 }
-
 .nav-link {
     color: white;
     text-decoration: none;
 }
+/*----------------------------------navbar-----------*/
+
+
+/*----------------------------------buttons-----------*/
+.btn-light{
+    margin: 2px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-light:hover{
+    cursor: pointer;
+    background-color: #fff6db;
+}
+.commentButtons{
+    display: flex;
+    justify-content: center;
+}
+/*----------------------------------buttons-----------*/
 
 .board-container{
     width: 75%;

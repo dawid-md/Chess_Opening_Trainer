@@ -252,9 +252,7 @@ export default function Training() {
 
   return (
     <div className="mainDiv">
-
       <div className="leftPanel">
-
         <div className="loadedMoves"> 
           {bookMoves.map(elem => <p key={elem} style={{color : "white"}}>{elem}</p>)}
         </div>
@@ -294,7 +292,7 @@ export default function Training() {
       
       <div className="rightpanel">
 
-        <div className="moveMades text-white">  {/* pgn view of line */}
+        <div className="moveMades">  {/* pgn view of line */}
           <p>{pgnView}</p>
         </div>
 
@@ -302,7 +300,7 @@ export default function Training() {
           <CommentBox comment={comment} setComment={setComment} position={fen} />
         </div>
         
-        <div className="commentButtons text-center">
+        <div className="commentButtons">
         </div>
 
       </div>

@@ -20,9 +20,8 @@ export default function Panel(){
 
     return(
         <nav className="custom-navbar bg-dark">
-            <div className="container">
-                <a className="brand-logo" href="www.google.com"><h2>Opening <span className="brand-highlight"> Trainer</span></h2></a>
-                <div className="collapse navbar-collapse" id="navmenu">
+                <a className="brand-name1" href="www.google.com"><h2>Opening <span className="brand-name2"> Trainer</span></h2></a>
+                <div className="collapse">
                     <ul className="nav-items">
                         <li><Link className="nav-link" to="/">Home</Link></li>
                         {!user && <li><Link className="nav-link" to="/login">Login</Link></li>}
@@ -36,7 +35,6 @@ export default function Panel(){
                         {user && <li><div className="nav-link" onClick={handleLogout}>Sign out</div></li>}
                     </ul>
                 </div>
-            </div>
         </nav>
     )
 }
