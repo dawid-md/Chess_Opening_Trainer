@@ -289,16 +289,11 @@ export default function Training() {
       </div>
       
       <div className="rightpanel">
-
         <div className="moveMades">  {/* pgn view of line */}
           <p>{pgnView}</p>
         </div>
-
         <div className="commentsDiv">
           <CommentBox comment={comment} setComment={setComment} position={fen} />
-        </div>
-        
-        <div className="commentButtons">
         </div>
 
       </div>
