@@ -7,7 +7,7 @@ import { treeToPGN } from "../treeNodePgn"
 import useSound from "use-sound"
 import moveSound from "../Sounds/Move.mp3"
 import captureSound from "../Sounds/Capture.mp3"
-import errorSound from "../Sounds/Error.mp3"
+import errorSound from "../Sounds/OutOfBound.mp3"
 import { getDatabase, ref, get, push, remove, update, query, orderByChild, equalTo, child } from 'firebase/database'
 import { app } from "../Config/firebase"  //this is important, don't comment it out
 import { AuthContext } from "../App"
@@ -23,8 +23,6 @@ export default function Training() {
   const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""})
   const [openings, setOpenings] = useState([])    //opening downloaded from database
   const [openingID, setOpeningID] = useState([""])  //id of the current opening that is selected by user and edited
-  const [openingName, setopeningName] = useState("")  //name chosed before saving 
-  const [openingColor, setopeningColor] = useState("")  //name chosed before saving 
   const [bookMoves, setbookMoves] = useState([])    //saved moves that application suggests with arrows
   const [bookMovesArrows, setbookMovesArrows] = useState([])    //suggests saved moves
 
