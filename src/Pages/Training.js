@@ -100,18 +100,6 @@ export default function Training() {
     return result !== null;       //if result === null return false, else return true
   }
 
-  const chooseTrainingMove = () => {
-    if(currentNode.children.length > 0){
-      setTimeout(() => {
-        const randomChild = Math.floor(Math.random() * currentNode.children.length-1) + 1
-        const result2 = game.move(currentNode.children[randomChild].move)   //first child is always the main line
-        setFen(game.fen())
-        setcurrentNode(currentNode.children[randomChild])   //!!!!!!need to check that, why the 0 child is set if we use random child in previous step?
-        MoveSound(result2)
-      }, 300)
-    }
-  }
-
   function resetPosition(){
     game.reset()
     setFen(game.fen())    //Triggers render with new position
@@ -152,9 +140,9 @@ export default function Training() {
     setmoveTree(tree)
     setcurrentNode(tree)
     setpgnView(treeToPGN(tree))
+    setOrientation(rootNode.color)
 
-    if(trainingUserColor === "black"){  //make the first move for white cpu
-      setOrientation("black")
+    if(rootNode.color === "black"){  //make the first move for white cpu
       setTimeout(() => {
         const randomChild = Math.floor(Math.random() * tree.children.length-1) + 1
         const result = game.move(tree.children[randomChild].move)   //first child is always the main line
@@ -162,8 +150,6 @@ export default function Training() {
         setcurrentNode(tree.children[randomChild])
         MoveSound(result)
       }, 500)
-    } else{
-      setOrientation("white")
     }
   }
 
@@ -217,14 +203,6 @@ export default function Training() {
   function onPieceDragBegin(piece, sourceSquare){
     const hasOptions = getMoveOptions(sourceSquare)
     if (hasOptions) {setMoveFrom(sourceSquare)}
-  }
-
-  const switchColor = () => {
-    if(trainingUserColor === "white"){
-      setTrainingUserColor("black")
-    } else{
-      setTrainingUserColor("white")
-    }
   }
 
   useEffect(() => {
@@ -284,7 +262,7 @@ export default function Training() {
           <button className="btn-light" onClick={resetPosition}>Reset</button>
           <button className="btn-light" onClick={() => {setOrientation(prevOrientation => (prevOrientation === "white" ? "black" : "white"))}}>Flip Board</button>
           <button className="btn-light" onClick={getOpenings}>Openings</button>
-          <button className={`btn-light ${openingID ? 'disabled' : ''}`} onClick={switchColor}>{trainingUserColor}</button>
+          {/* <button className={`btn-light ${openingID ? 'disabled' : ''}`} onClick={switchColor}>{trainingUserColor}</button> possibility to manualy change the color to train on - even if the color is already set */} 
         </div>
       </div>
       
@@ -300,3 +278,39 @@ export default function Training() {
     </div>
   )
 }
+
+
+
+    // if(trainingUserColor === "black"){  //make the first move for white cpu
+    //   setOrientation("black")
+    //   setTimeout(() => {
+    //     const randomChild = Math.floor(Math.random() * tree.children.length-1) + 1
+    //     const result = game.move(tree.children[randomChild].move)   //first child is always the main line
+    //     setFen(game.fen())  //Triggers render with new position
+    //     setcurrentNode(tree.children[randomChild])
+    //     MoveSound(result)
+    //   }, 500)
+    // } else{
+    //   setOrientation("white")
+    // }
+
+    // const switchColor = () => {
+    //   if(trainingUserColor === "white"){
+    //     setTrainingUserColor("black")
+    //   } else{
+    //     setTrainingUserColor("white")
+    //   }
+    // }
+
+    // const chooseTrainingMove = () => {
+    //   if(currentNode.children.length > 0){
+    //     setTimeout(() => {
+    //       const randomChild = Math.floor(Math.random() * currentNode.children.length-1) + 1
+    //       const result2 = game.move(currentNode.children[randomChild].move)   //first child is always the main line
+    //       setFen(game.fen())
+    //       setcurrentNode(currentNode.children[randomChild])   //!!!!!!need to check that, why the 0 child is set if we use random child in previous step?
+    //       MoveSound(result2)
+    //     }, 300)
+    //   }
+    // }
+

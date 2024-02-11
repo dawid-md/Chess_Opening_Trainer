@@ -12,6 +12,7 @@ import { getDatabase, ref, get, push, remove, update, query, orderByChild, equal
 import { app } from "../Config/firebase"  //this is important, don't comment it out
 import { AuthContext } from "../App"
 import { ArrowClockwise, ArrowDownUp, ArrowLeft, ArrowRepeat, ArrowRight } from "react-bootstrap-icons"
+import SimpleModal from "../Components/SimpleModal"
 
 export default function Analysis() {
   const {user} = useContext(AuthContext)
@@ -28,6 +29,7 @@ export default function Analysis() {
   const [openingColor, setopeningColor] = useState("")  //name chosed before saving 
   const [bookMoves, setbookMoves] = useState([])      //saved book moves that application suggests with arrows
   const [bookMovesArrows, setbookMovesArrows] = useState([])    //suggests saved book moves
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [moveTree, setmoveTree] = useState(null)  //main tree of all nodes (moves)
   const [currentNode, setcurrentNode] = useState(null)
@@ -323,16 +325,18 @@ export default function Analysis() {
     setpgnView(treeToPGN(moveTree))
   }
 
-  useEffect(() => {
-    console.log("rendered");
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
-    if(moveTree == null){
+  useEffect(() => {
+    if (moveTree == null) {
       const rootNode = new treeNode('root')
       setmoveTree(rootNode)
       setcurrentNode(rootNode)
     }
-    checkGame()
+  }, [moveTree])
 
+  useEffect(() => {
     const newbookMoves = []
     if(currentNode){
       for(const child of currentNode.children){
@@ -342,21 +346,24 @@ export default function Analysis() {
     }
     const possibleMoves = game.moves({ verbose: true })
     const arrowMoves = []
-    possibleMoves.forEach(move => {   //changed from map
+    possibleMoves.forEach(move => {
       if(newbookMoves.includes(move.san)){
         arrowMoves.push([move.from, move.to, 'orange'])
       }
     })
     setbookMovesArrows(arrowMoves)
+  }, [currentNode, game])
 
-    if(user && moveTree && Object.keys(hashComments).length === 0){   //checks user and movetree to avoid unnecessary comments download
-      console.log('download comments');
+  useEffect(() => {
+    checkGame() //sets up comments - currentNode always changes
+    if(user && openings.length === 0 && Object.keys(hashComments).length === 0 ){
+      getOpenings()
+    }
+    if(user && Object.keys(hashComments).length === 0){
       loadComment()
     }
-
     window.addEventListener("keydown", handleKeyPress)
     return () => {window.removeEventListener("keydown", handleKeyPress)}
-
   }, [fen, hashComments, currentNode])
 
   return (
@@ -384,12 +391,12 @@ export default function Analysis() {
         />
 
         <div className="buttons">
-          <button className="btn-light" onClick={moveForward}><ArrowRight /></button>
           <button className="btn-light" onClick={moveBack}><ArrowLeft /></button>
+          <button className="btn-light" onClick={moveForward}><ArrowRight /></button>
           <button className="btn-light" onClick={() => {setOrientation(prevOrientation => (prevOrientation === "white" ? "black" : "white"))}}><ArrowDownUp /></button>
           <button className="btn-light" onClick={resetPosition}><ArrowClockwise /></button>
           <button className="btn-light" onClick={saveOpening}>Save</button>
-          <button className="btn-light" data-bs-toggle="modal" data-bs-target="#myModal">Save As</button>
+          <button className="btn-light" onClick={openModal}>Save As</button>
           <button className="btn-light" onClick={getOpenings}>Openings</button>
           <button className="btn-light" onClick={deleteMove}>Delete Move</button>
           {/* <button className="btn btn-light btn-sm mx-1" onClick={downloadtreeJSON}>Load</button> */}
@@ -414,100 +421,17 @@ export default function Analysis() {
 
       </div>
 
-      {/* <div className="modal" id="myModal" tabIndex="-1">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Save Opening</h5>
-              <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div className="modal-body">
-              <p>Name</p>
-              <input type="text" onChange={changeopeningName} className="form-control" placeholder="Opening Name"/>
-              <p>Color</p>
-              <select onChange={changeopeningColor} className="form-control">
-                <option value="both">Both</option>
-                <option value="white">White</option>
-                <option value="black">Black</option>
-              </select>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn-light" data-bs-dismiss="modal">Close</button>
-              <button type="button" className="btn-light" data-bs-dismiss="modal" onClick={saveOpening}>Save</button>
-            </div>
-          </div>
+      <SimpleModal isOpen={isModalOpen} onClose={closeModal} onSave={saveOpening}>
+        <div>
+          <p>Name</p>
+          <input type="text" onChange={changeopeningName} placeholder="Opening Name"/>
+          <p>Color</p>
+          <select onChange={changeopeningColor}>
+            <option value="white">White</option>
+            <option value="black">Black</option>
+          </select>
         </div>
-      </div> */}
-
+      </SimpleModal>
     </div>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-//---------------------axios
-  // const saveTreeJSON = async () => {      //upload tree json to database
-  //   const result = treeToJSON(moveTree)
-  //   result.name = openingName
-  //   console.log(result);
-  //   const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`, result)
-  //   setopeningName("")
-  // }
-
-    // async function deleteComment(){
-  //   if(comment.commentID != ""){
-  //     const res = await axios.delete(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments/${comment.commentID}.json`)
-  //     loadComment()
-  //   }
-  // }
-
-    // async function saveComment(){
-  //   if(comment != ""){
-  //     const res = await axios.post(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments.json`, comment)
-  //     console.log("comment saved")
-  //   } 
-  //   else{ //update comment
-  //     const res = await axios.patch(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments/${comment.commentID}.json`, {"comment" : comment.comment})
-  //     console.log("comment updated")
-  //   }
-  //   loadComment()
-  // }
-
-    // async function loadComment(){
-  //   const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Comments.json`)
-  //   const hashComments = {}
-
-  //   for(const key in res.data){
-  //       const keyPos = res.data[key]["position"].split(' ').slice(0, 4).join(' ')
-  //       if(!hashComments[keyPos]){ 
-  //         hashComments[keyPos] = {
-  //           "comment" : res.data[key]["comment"],
-  //           "commentID" : key
-  //         }
-  //       }
-  //   }
-  //   sethashComments(hashComments)
-  // }
-
-    // async function getOpenings(){
-  //   const res = await axios.get(`https://opening-trainer-default-rtdb.europe-west1.firebasedatabase.app/Trees.json`)
-  //   const openingsArray = []
-  //   for(const key of Object.keys(res.data)){
-  //     const itemWithKey = {
-  //       id: key,
-  //       ...res.data[key]
-  //     }
-  //     openingsArray.push(itemWithKey)
-  //   }
-  //   setOpenings(openingsArray)
-  // }
