@@ -1,16 +1,36 @@
-.bg-dark, body{
+.bg-dark,
+body {
     background-color: #181818;
     color: white;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-size: 1.25rem;
 }
 
+/*----------------------------------home-----------*/
+.homeContainer {
+    display: grid;
+    place-content: center;
+    width: 100%;
+    /* padding-top: 100px; */
+}
+
+.pageTitle {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    width: 680px;
+    place-items: center;
+}
+
+.homeTitle {
+    line-height: 1.5;
+}
+
 /*----------------------------------navbar-----------*/
-.custom-navbar { 
+.custom-navbar {
     padding: 1.2rem 4rem;
     width: 100%;
     margin: auto;
@@ -18,27 +38,33 @@
     justify-content: space-between;
     align-items: center;
 }
-.brand-name1{
+
+.brand-name1 {
     color: white;
     text-decoration: none;
 }
+
 .brand-name2 {
-    color: #ffc107; /* Bootstrap's "warning" color */
+    color: #ffc107;
+    /* Bootstrap's "warning" color */
 }
+
 .nav-items {
     list-style: none;
     display: flex;
     gap: 1.2rem;
 }
+
 .nav-link {
     color: white;
     text-decoration: none;
 }
+
 /*----------------------------------navbar-----------*/
 
 
 /*----------------------------------buttons-----------*/
-.btn-light{
+.btn-light {
     margin: 2px;
     padding: 5px 10px;
     border-radius: 5px;
@@ -46,18 +72,23 @@
     align-items: center;
     justify-content: center;
 }
-.btn-light:hover{
+
+.btn-light:hover {
     cursor: pointer;
     background-color: #fff6db;
 }
-.buttons, .commentButtons{   
+
+.buttons,
+.commentButtons {
     display: flex;
     justify-content: center;
     margin-top: 25px;
 }
+
 /*----------------------------------buttons-----------*/
 
-.mainDiv{   /*---------leftPanel, chessboard, rightPanel-----------*/
+.mainDiv {
+    /*---------leftPanel, chessboard, rightPanel-----------*/
     width: 100%;
     padding: 20px 200px;
     display: grid;
@@ -65,11 +96,16 @@
     justify-content: center;
     gap: 10px;
 }
-.board-container{
+
+.board-container {
     width: 100%;
     min-width: 520px;
 }
-.loadedMoves, .openings, .moveMades, textarea{
+
+.loadedMoves,
+.openings,
+.moveMades,
+textarea {
     width: 100%;
     padding: 10px;
     height: 257px;
@@ -77,19 +113,25 @@
     border-radius: 4px;
     border-color: rgb(99, 99, 99);
 }
-.openings p:hover{
+
+.openings p:hover {
     cursor: pointer;
     background-color: gray;
 }
-.userOpening{   /*--------items in openings Div--------*/
+
+.userOpening {
+    /*--------items in openings Div--------*/
     display: flex;
-    align-items: center;    /*center dots vertically*/
-}
-.userOpening p{
-    margin-top: 10px;  /*otherwise text rows are to close*/
+    align-items: center;
+    /*center dots vertically*/
 }
 
-img{
+.userOpening p {
+    margin-top: 10px;
+    /*otherwise text rows are to close*/
+}
+
+img {
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -108,10 +150,10 @@ img{
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-  
-  .modal-content {
+}
+
+.modal-content {
     background-color: white;
     padding: 20px;
     border-radius: 5px;
-  }
+}

@@ -1,4 +1,4 @@
-import { useState, forwardRef } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import CustomSquareRenderer from "../CustomSquareRenderer";
@@ -11,6 +11,24 @@ export default function Multiplayer() {
   const [playMoveSound] = useSound(moveSound)
   const [playCaptureSound] = useSound(captureSound)
   const [mycustomSquares] = useState(["d4", "a1"])
+  const [engine, setEngine] = useState(null);
+  const [evaluation, setEvaluation] = useState("");
+
+  useEffect(() => {
+    // Initialize Stockfish engine as a web worker
+    const newEngine = new Worker('stockfish.js');
+    newEngine.onmessage = function(event) {
+      console.log("Stockfish says: ", event.data);
+      if (event.data.startsWith("info depth")) {
+        setEvaluation(event.data);
+      }
+    };
+    setEngine(newEngine);
+
+    return () => {
+      newEngine.terminate();
+    };
+  }, []);
 
   const makeMove = (move) => {
     const possibleMoves = game.moves({ verbose: true });
@@ -29,6 +47,11 @@ export default function Multiplayer() {
     if (result === null) return null;
 
     setGame(new Chess(newPosition.fen()))
+
+    // Send new position to Stockfish for evaluation
+    engine.postMessage(`position fen ${newPosition.fen()}`);
+    engine.postMessage("go depth 20");
+
     return result;
   }
 
@@ -36,12 +59,11 @@ export default function Multiplayer() {
     const move = {
       from: sourceSquare,
       to: targetSquare,
-      promotion: "q", // always promote to a queen for simplicity
+      promotion: "q",
     };
     const result = makeMove(move);
-    if (result === null) return false;  // illegal move
+    if (result === null) return false;  //illegal move
 
-    //if (result) setTimeout(makeRandomMove, 100); // If move was successful, schedule the random move.
     return true;
   }
 
@@ -53,6 +75,10 @@ export default function Multiplayer() {
           customSquare={(props) => <CustomSquareRenderer {...props} customSquares={mycustomSquares} />}
           onPieceDrop={onDrop} 
         />
+        {/* Optionally display the evaluation */}
+        <div className="evaluation text-white">
+          {evaluation}
+        </div>
       </div>
     </div>
   )

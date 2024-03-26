@@ -51,12 +51,11 @@ export default function Training() {
           setFen(game.fen())  //Triggers render with new position
           setcurrentNode(childBookMoveFound.children[randomChild])   //!!!!!!need to check that, why the 0 child is set if we use random child in previous step?
           MoveSound(result)
-        }, 300)
+        }, 1000)
       }
     }else{   //if played move is not the book move
       playErrorSound()
       game.undo()
-      //return false
     }       
   }
 

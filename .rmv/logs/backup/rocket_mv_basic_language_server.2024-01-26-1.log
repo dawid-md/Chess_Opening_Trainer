@@ -1,5 +1,0 @@
-2024-01-26 00:00:24.229 [pool-3-thread-1] INFO  com.rs.mv.mvvs.client.catalog.from.scan.CurrentPathScanner - [client:400205]scan file in current open file directory(C:/Users/Dawid/Desktop/Opening_Trainer/opening_trainer/node_modules/bootstrap-icons/icons)
-2024-01-26 00:00:24.658 [pool-3-thread-1] INFO  com.rs.mv.mvvs.client.catalog.from.scan.CurrentPathScanner - [client:400205]scan file in current open file directory(C:/Users/Dawid/Desktop/Opening_Trainer/opening_trainer/src/Pages)
-2024-01-26 00:12:17.120 [pool-3-thread-1] INFO  com.rs.mv.mvvs.client.catalog.from.scan.CurrentPathScanner - [client:400205]scan file in current open file directory(C:/Users/Dawid/Desktop/Opening_Trainer/opening_trainer/src)
-2024-01-26 00:13:02.716 [pool-3-thread-1] INFO  com.rs.mv.mvvs.client.catalog.from.scan.CurrentPathScanner - [client:400205]scan file in current open file directory(C:/Users/Dawid/Desktop/Opening_Trainer/opening_trainer/src/Components)
-2024-01-26 00:15:41.063 [pool-3-thread-1] INFO  com.rs.mv.mvvs.client.catalog.from.scan.CurrentPathScanner - [client:400205]scan file in current open file directory(C:/Users/Dawid/Desktop/Opening_Trainer/opening_trainer/src/Pages)
