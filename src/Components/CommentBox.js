@@ -1,5 +1,4 @@
 export default function CommentBox({comment, setComment, position}){
-
   const changeComment = (fieldValue) => {
     setComment({
       position: position,

@@ -24,9 +24,9 @@ export default function Analysis() {
   const [hashComments, setHashComments] = useState({})
   const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""})
   const [openings, setOpenings] = useState([])    //opening downloaded from database
-  const [openingID, setOpeningID] = useState([""])  //id of the current opening that is selected by user and edited
+  const [openingID, setOpeningID] = useState("")  //id of the current opening that is selected by user and edited
   const [openingName, setopeningName] = useState("")  //name chosed before saving 
-  const [openingColor, setopeningColor] = useState("")  //name chosed before saving 
+  const [openingColor, setopeningColor] = useState("white")  //name chosed before saving 
   const [bookMoves, setbookMoves] = useState([])      //saved book moves that application suggests with arrows
   const [bookMovesArrows, setbookMovesArrows] = useState([])    //suggests saved book moves
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -140,7 +140,7 @@ export default function Analysis() {
       }
       setopeningName("")
     } else {
-      const specificOpeningRef  = ref(db, `Openings/${openingID}`)
+      const specificOpeningRef = ref(db, `Openings/${openingID}`)
       try{
         await update(specificOpeningRef, { "nodes": result.nodes })
         console.log('opening updated');
@@ -157,7 +157,7 @@ export default function Analysis() {
       const snapshot = await get(openingsRef)
       if(snapshot.exists()) {
         const data = snapshot.val()
-        console.log(data);
+        //console.log(data);
         const openingsArray = Object.keys(data).map(key => ({
           id: key,
           ...data[key]
@@ -241,7 +241,7 @@ export default function Analysis() {
       const specificCommentRef = ref(db, `Comments/${comment.commentID}`);
       try {
         await update(specificCommentRef, { "comment": comment.comment });
-        console.log("comment updated");
+        //console.log("comment updated");
       } catch (error) {
         console.log(error);
       }
@@ -395,7 +395,7 @@ export default function Analysis() {
           <button className="btn-light" onClick={moveForward}><ArrowRight /></button>
           <button className="btn-light" onClick={() => {setOrientation(prevOrientation => (prevOrientation === "white" ? "black" : "white"))}}><ArrowDownUp /></button>
           <button className="btn-light" onClick={resetPosition}><ArrowClockwise /></button>
-          <button className="btn-light" onClick={saveOpening}>Save</button>
+          <button className="btn-light" onClick={openingID ? saveOpening : openModal}>Save</button>
           <button className="btn-light" onClick={openModal}>Save As</button>
           <button className="btn-light" onClick={getOpenings}>Openings</button>
           <button className="btn-light" onClick={deleteMove}>Delete Move</button>
