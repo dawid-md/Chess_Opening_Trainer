@@ -25,8 +25,6 @@ export default function Analysis() {
   const [comment, setComment] = useState({"position" : "", "comment" : "", commentID : ""})
   const [openings, setOpenings] = useState([])    //opening downloaded from database
   const [openingID, setOpeningID] = useState("")  //id of the current opening that is selected by user and edited
-  const [openingName, setopeningName] = useState("")  //name chosed before saving 
-  const [openingColor, setopeningColor] = useState("white")  //name chosed before saving 
   const [bookMoves, setbookMoves] = useState([])      //saved book moves that application suggests with arrows
   const [bookMovesArrows, setbookMovesArrows] = useState([])    //suggests saved book moves
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -124,7 +122,7 @@ export default function Analysis() {
     setHashComments({})
   }
 
-  const saveOpening = async () => {      //upload opening tree json to database
+  const saveOpening = async (openingName, openingColor) => {      //upload opening tree json to database
     const db = getDatabase()
     const openingsRef = ref(db, 'Openings')
     const result = treeToJSON(moveTree)   //convert tree to more flat structure
@@ -134,11 +132,12 @@ export default function Analysis() {
     if(openingID == ""){
       result.userID = user.uid
       try {
-        await push(openingsRef, result)  //upload whole result object
+        await push(openingsRef, result)  //upload whole result object to database
+        setIsModalOpen(false)
       } catch (error) {
         console.log(error)
       }
-      setopeningName("")
+      // setopeningName("")
     } else {
       const specificOpeningRef = ref(db, `Openings/${openingID}`)
       try{
@@ -300,16 +299,6 @@ export default function Analysis() {
     if (hasOptions) {setMoveFrom(sourceSquare)}
   }
 
-  const changeopeningName = (event) => {
-    event.preventDefault()
-    setopeningName(event.target.value)
-  }
-
-  const changeopeningColor = (event) => {
-    event.preventDefault()
-    setopeningColor(event.target.value)
-  }
-
   const handleKeyPress = (event) => {
     if(event.key === "ArrowRight"){moveForward()}
     if(event.key === "ArrowLeft"){moveBack()}
@@ -375,7 +364,7 @@ export default function Analysis() {
         </div>
 
         <div className="openings">
-          {openings.map((item, index) => <p id={item.id} key={index} onClick={() => selectOpening(item.id)}>{item.name}</p>)}
+          {openings.map((item, index) => <p id={item.id} className={item.id == openingID ? "selectedOpening" : ""} key={index} onClick={() => selectOpening(item.id)}>{item.name}</p>)}
         </div>
       </div>
 
@@ -421,17 +410,8 @@ export default function Analysis() {
 
       </div>
 
-      <SimpleModal isOpen={isModalOpen} onClose={closeModal} onSave={saveOpening}>
-        <div>
-          <p>Name</p>
-          <input type="text" onChange={changeopeningName} placeholder="Opening Name"/>
-          <p>Color</p>
-          <select onChange={changeopeningColor}>
-            <option value="white">White</option>
-            <option value="black">Black</option>
-          </select>
-        </div>
-      </SimpleModal>
+      <SimpleModal isOpen={isModalOpen} onClose={closeModal} onSave={saveOpening} />
+
     </div>
   )
 }

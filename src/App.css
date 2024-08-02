@@ -131,6 +131,10 @@ textarea {
     /*otherwise text rows are to close*/
 }
 
+.selectedOpening {
+    color: #ffc107;
+}
+
 img {
     display: block;
     margin-left: auto;
