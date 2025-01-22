@@ -294,10 +294,10 @@ export default function Analysis() {
     }
   }
 
-  function onPieceDragBegin(piece, sourceSquare){
-    const hasOptions = getMoveOptions(sourceSquare)
-    if (hasOptions) {setMoveFrom(sourceSquare)}
-  }
+  // function onPieceDragBegin(piece, sourceSquare){
+  //   const hasOptions = getMoveOptions(sourceSquare)
+  //   if (hasOptions) {setMoveFrom(sourceSquare)}
+  // }
 
   const handleKeyPress = (event) => {
     if(event.key === "ArrowRight"){moveForward()}
@@ -372,9 +372,9 @@ export default function Analysis() {
         <Chessboard 
           position={fen} 
           boardOrientation={orientation}
-          onPieceDrop={onDrop} 
+          //onPieceDrop={onDrop} 
           onSquareClick={onSquareClick}
-          onPieceDragBegin={onPieceDragBegin}
+          //onPieceDragBegin={onPieceDragBegin}
           customSquareStyles={optionSquares}    //available moves for clicked piece
           customArrows={bookMovesArrows}
         />
